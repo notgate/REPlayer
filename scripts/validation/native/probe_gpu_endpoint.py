@@ -207,6 +207,10 @@ def main() -> int:
         shutil.rmtree(TMP_ROOT)
     TMP_ROOT.mkdir(parents=True)
     try:
+        # Endpoint validation checks declared artifact presence; it does not load
+        # the backend. Keep this probe independent of the ignored local SDK.
+        gfxstream_backend_fixture = TMP_ROOT / "libgfxstream_backend.dll"
+        gfxstream_backend_fixture.write_bytes(b"REPlayer gfxstream endpoint probe fixture\n")
         ring = TMP_ROOT / "gpu-producer-probe.frame-ring.bin"
         write_ring(ring)
         frame = frame_endpoint(ring)
@@ -228,7 +232,7 @@ def main() -> int:
             "rendererApi": "vulkan",
             "transport": "virtio-gpu-pci",
             "protocol": "gfxstream-vulkan-or-gles",
-            "rendererBackendPath": win_path(ROOT / "runtime" / "google-emulator" / "sdk" / "emulator" / "lib64" / "libgfxstream_backend.dll"),
+            "rendererBackendPath": win_path(gfxstream_backend_fixture),
         }
         scanout_import = producer_endpoint(frame, producerKind="virtio-gpu-gfxstream-scanout-import", capabilities={
             "producesBgraFrames": True,
