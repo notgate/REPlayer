@@ -1,0 +1,49 @@
+# .NET / Visual Studio
+**/bin/
+**/obj/
+.vs/
+*.user
+*.suo
+*.pdb
+
+# Python
+__pycache__/
+*.py[cod]
+
+# Local runtime, downloaded SDKs, VM disks, and generated evidence
+/runtime/
+/artifacts/
+/logs/
+/captures/
+/instances/
+/fixed-debug-run/
+/hyperv/
+/mnt-android/
+/.tmp/
+
+# Generated Android build products and local signing material
+ReVM/Assets/Android/*.apk
+ReVM/Assets/Android/*.idsig
+android-tools/**/build/
+android-tools/**/.gradle/
+android-tools/**/signing/
+guest-src/revm-fastpipe-guest/revm-fastpipe-guest
+*.apk
+*.idsig
+*.keystore
+
+# VM and package artifacts
+*.zip
+*.qcow2
+*.vhd
+*.vhdx
+*.img
+*.iso
+*.lock
+*.pcap
+*.dmp
+
+# OS / editor edge cases
+.DS_Store
+Thumbs.db
+NUL

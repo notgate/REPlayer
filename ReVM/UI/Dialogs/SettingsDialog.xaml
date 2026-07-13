@@ -1,0 +1,789 @@
+<Window x:Class="ReVM.SettingsDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="REPlayer Settings" Height="636" Width="836"
+        WindowStyle="None" ResizeMode="NoResize"
+        AllowsTransparency="True"
+        Background="Transparent"
+        FontFamily="Segoe UI"
+        TextOptions.TextFormattingMode="Display"
+        WindowStartupLocation="CenterOwner">
+
+    <WindowChrome.WindowChrome>
+        <WindowChrome CaptionHeight="26" ResizeBorderThickness="4"
+                       GlassFrameThickness="0" CornerRadius="0"/>
+    </WindowChrome.WindowChrome>
+
+    <Window.Resources>
+        <SolidColorBrush x:Key="BgMain" Color="#1E1E1E"/>
+        <SolidColorBrush x:Key="BgPanel" Color="#252526"/>
+        <SolidColorBrush x:Key="BgTitle" Color="#323233"/>
+        <SolidColorBrush x:Key="BgCard" Color="#2D2D2D"/>
+        <SolidColorBrush x:Key="BgHover" Color="#3E3E3E"/>
+        <SolidColorBrush x:Key="BgActive" Color="#37373D"/>
+        <SolidColorBrush x:Key="BgPressed" Color="#2A2A2A"/>
+        <SolidColorBrush x:Key="TextPrimary" Color="#CCCCCC"/>
+        <SolidColorBrush x:Key="TextSecondary" Color="#858585"/>
+        <SolidColorBrush x:Key="TextMuted" Color="#5A5A5A"/>
+        <SolidColorBrush x:Key="BorderColor" Color="#3E3E3E"/>
+        <SolidColorBrush x:Key="AccentMono" Color="#454545"/>
+        <SolidColorBrush x:Key="Danger" Color="#E81123"/>
+
+        <Style x:Key="VscodeToolTip" TargetType="ToolTip">
+            <Setter Property="Background" Value="#252526"/>
+            <Setter Property="Foreground" Value="#CCCCCC"/>
+            <Setter Property="BorderBrush" Value="#454545"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="FontFamily" Value="Segoe UI"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Padding" Value="8,6"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ToolTip">
+                        <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style TargetType="ToolTip" BasedOn="{StaticResource VscodeToolTip}"/>
+        <Style TargetType="ScrollBar">
+            <Setter Property="Width" Value="8"/>
+            <Setter Property="Background" Value="#252526"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ScrollBar">
+                        <Grid Background="{TemplateBinding Background}" Width="8">
+                            <Track x:Name="PART_Track" IsDirectionReversed="True" Focusable="False">
+                                <Track.DecreaseRepeatButton><RepeatButton Command="{x:Static ScrollBar.PageUpCommand}" Opacity="0" Focusable="False"/></Track.DecreaseRepeatButton>
+                                <Track.Thumb>
+                                    <Thumb Background="#555555">
+                                        <Thumb.Template><ControlTemplate TargetType="Thumb"><Border Background="{TemplateBinding Background}" Margin="1,0"/></ControlTemplate></Thumb.Template>
+                                    </Thumb>
+                                </Track.Thumb>
+                                <Track.IncreaseRepeatButton><RepeatButton Command="{x:Static ScrollBar.PageDownCommand}" Opacity="0" Focusable="False"/></Track.IncreaseRepeatButton>
+                            </Track>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="ChromeBtn" TargetType="Button">
+            <Setter Property="Width" Value="34"/>
+            <Setter Property="Height" Value="26"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd" Background="{TemplateBinding Background}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="Bd" Property="Background" Value="{StaticResource BgHover}"/></Trigger>
+                            <Trigger Property="IsPressed" Value="True"><Setter TargetName="Bd" Property="Background" Value="{StaticResource BgPressed}"/></Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="CloseChromeBtn" TargetType="Button" BasedOn="{StaticResource ChromeBtn}">
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True"><Setter Property="Background" Value="{StaticResource Danger}"/><Setter Property="Foreground" Value="White"/></Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="NavRadio" TargetType="RadioButton">
+            <Setter Property="Height" Value="36"/>
+            <Setter Property="Width" Value="200"/>
+            <Setter Property="Margin" Value="0,0,0,8"/>
+            <Setter Property="Foreground" Value="{StaticResource TextSecondary}"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontWeight" Value="Normal"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Border x:Name="Bd" Background="Transparent" SnapsToDevicePixels="True">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="36"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Path x:Name="Icon" Data="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=Tag}" Stroke="{TemplateBinding Foreground}" StrokeThickness="1.15" Fill="Transparent" Width="13" Height="13" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                <ContentPresenter Grid.Column="1" Margin="2,0,0,1" VerticalAlignment="Center" RecognizesAccessKey="True"/>
+                            </Grid>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="Bd" Property="Background" Value="#2A2D2E"/><Setter Property="Foreground" Value="{StaticResource TextPrimary}"/></Trigger>
+                            <Trigger Property="IsChecked" Value="True"><Setter TargetName="Bd" Property="Background" Value="{StaticResource BgActive}"/><Setter Property="Foreground" Value="{StaticResource TextPrimary}"/><Setter Property="FontWeight" Value="SemiBold"/></Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="SegmentOption" TargetType="RadioButton">
+            <Setter Property="Height" Value="32"/>
+            <Setter Property="MinWidth" Value="86"/>
+            <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Border x:Name="Bd" Background="#252526" BorderBrush="#3E3E3E" BorderThickness="1">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="12,0"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="Bd" Property="Background" Value="#2D2D2D"/></Trigger>
+                            <Trigger Property="IsChecked" Value="True"><Setter TargetName="Bd" Property="Background" Value="#37373D"/><Setter TargetName="Bd" Property="BorderBrush" Value="#5A5A5A"/></Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="PresetRadio" TargetType="RadioButton">
+            <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Margin" Value="0,0,0,12"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <StackPanel Orientation="Horizontal">
+                            <Border x:Name="Dot" Width="12" Height="12" BorderBrush="#858585" BorderThickness="1" Margin="0,1,10,0" Background="Transparent"/>
+                            <ContentPresenter VerticalAlignment="Center"/>
+                        </StackPanel>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True"><Setter Property="Foreground" Value="White"/><Setter TargetName="Dot" Property="BorderBrush" Value="#CCCCCC"/></Trigger>
+                            <Trigger Property="IsChecked" Value="True"><Setter TargetName="Dot" Property="Background" Value="#CCCCCC"/><Setter TargetName="Dot" Property="BorderBrush" Value="#CCCCCC"/></Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style TargetType="RadioButton" BasedOn="{StaticResource PresetRadio}"/>
+
+        <Style x:Key="LdTextBox" TargetType="TextBox">
+            <Setter Property="Height" Value="28"/>
+            <Setter Property="MinWidth" Value="86"/>
+            <Setter Property="Background" Value="#1E1E1E"/>
+            <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderColor}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CaretBrush" Value="{StaticResource TextPrimary}"/>
+            <Setter Property="Padding" Value="8,5"/>
+            <Setter Property="FontSize" Value="12"/>
+        </Style>
+        <Style x:Key="ComboItemStyle" TargetType="ComboBoxItem">
+            <Setter Property="Background" Value="#252526"/>
+            <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
+            <Setter Property="Padding" Value="10,6"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ComboBoxItem">
+                        <Border x:Name="Bd" Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsHighlighted" Value="True"><Setter TargetName="Bd" Property="Background" Value="#3E3E3E"/></Trigger>
+                            <Trigger Property="IsSelected" Value="True"><Setter TargetName="Bd" Property="Background" Value="#37373D"/></Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="ComboToggle" TargetType="ToggleButton">
+            <Setter Property="Focusable" Value="False"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ToggleButton">
+                        <Border Background="Transparent"/>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="LdCombo" TargetType="ComboBox">
+            <Setter Property="Height" Value="26"/>
+            <Setter Property="MinHeight" Value="26"/>
+            <Setter Property="Background" Value="#29292E"/>
+            <Setter Property="Foreground" Value="#CCCCCC"/>
+            <Setter Property="BorderBrush" Value="#3E3E3E"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="ItemContainerStyle" Value="{StaticResource ComboItemStyle}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ComboBox">
+                        <Grid Height="{TemplateBinding Height}" SnapsToDevicePixels="True">
+                            <ToggleButton x:Name="Toggle" Style="{StaticResource ComboToggle}" Height="{TemplateBinding Height}" IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}" ClickMode="Press"/>
+                            <Border x:Name="Bd" Height="{TemplateBinding Height}" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" IsHitTestVisible="False">
+                                <Grid>
+                                    <TextBlock Text="{Binding SelectedItem.Content, RelativeSource={RelativeSource TemplatedParent}}"
+                                               Foreground="{TemplateBinding Foreground}"
+                                               FontSize="{TemplateBinding FontSize}"
+                                               Margin="10,3,30,3"
+                                               VerticalAlignment="Center"
+                                               TextTrimming="CharacterEllipsis"/>
+                                    <Path Data="M4,6 L8,10 L12,6" Stroke="#858585" StrokeThickness="1.15" Fill="Transparent" Width="10" Height="7" Stretch="Uniform" HorizontalAlignment="Right" Margin="0,0,10,0" VerticalAlignment="Center"/>
+                                </Grid>
+                            </Border>
+                            <Popup x:Name="PART_Popup" AllowsTransparency="True" IsOpen="{TemplateBinding IsDropDownOpen}" Placement="Bottom" PopupAnimation="Fade">
+                                <Border Background="#252526" BorderBrush="#454545" BorderThickness="1" MinWidth="{Binding ActualWidth, RelativeSource={RelativeSource TemplatedParent}}">
+                                    <ScrollViewer MaxHeight="220" VerticalScrollBarVisibility="Hidden">
+                                        <ItemsPresenter/>
+                                    </ScrollViewer>
+                                </Border>
+                            </Popup>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="Bd" Property="BorderBrush" Value="#5A5A5A"/></Trigger>
+                            <Trigger Property="IsKeyboardFocusWithin" Value="True"><Setter TargetName="Bd" Property="BorderBrush" Value="#858585"/></Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="SliderRepeat" TargetType="RepeatButton">
+            <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="RepeatButton"><Border Background="Transparent"/></ControlTemplate></Setter.Value></Setter>
+        </Style>
+        <Style x:Key="SliderThumb" TargetType="Thumb">
+            <Setter Property="Width" Value="12"/>
+            <Setter Property="Height" Value="12"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Thumb">
+                        <Border x:Name="ThumbBd" Width="12" Height="12" Background="#CCCCCC" BorderBrush="#1E1E1E" BorderThickness="1"/>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="ThumbBd" Property="Background" Value="#FFFFFF"/></Trigger>
+                            <Trigger Property="IsDragging" Value="True"><Setter TargetName="ThumbBd" Property="Background" Value="#FFFFFF"/></Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style TargetType="Slider">
+            <Setter Property="Height" Value="22"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Slider">
+                        <Grid Height="22" VerticalAlignment="Center">
+                            <Border Height="3" Background="#252526" BorderBrush="#3E3E3E" BorderThickness="1" VerticalAlignment="Center"/>
+                            <Track x:Name="PART_Track" VerticalAlignment="Center">
+                                <Track.DecreaseRepeatButton><RepeatButton Style="{StaticResource SliderRepeat}" Command="Slider.DecreaseLarge"/></Track.DecreaseRepeatButton>
+                                <Track.Thumb><Thumb Style="{StaticResource SliderThumb}"/></Track.Thumb>
+                                <Track.IncreaseRepeatButton><RepeatButton Style="{StaticResource SliderRepeat}" Command="Slider.IncreaseLarge"/></Track.IncreaseRepeatButton>
+                            </Track>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="LdButton" TargetType="Button">
+            <Setter Property="Height" Value="28"/>
+            <Setter Property="MinWidth" Value="80"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Background" Value="#2D2D2D"/>
+            <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd" Background="{TemplateBinding Background}" CornerRadius="6,6,6,6">
+                            <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}" Margin="0,-1,0,0" RecognizesAccessKey="True"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="Bd" Property="Background" Value="#3E3E3E"/></Trigger>
+                            <Trigger Property="IsPressed" Value="True"><Setter TargetName="Bd" Property="Background" Value="#252526"/></Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="BlueButton" TargetType="Button" BasedOn="{StaticResource LdButton}">
+            <Setter Property="Background" Value="#37373D"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+        </Style>
+        <Style x:Key="SwitchCheck" TargetType="CheckBox">
+            <Setter Property="Width" Value="36"/>
+            <Setter Property="Height" Value="18"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="CheckBox">
+                        <Border x:Name="Track" Width="36" Height="18" Background="#3E3E3E">
+                            <Border x:Name="Thumb" Width="14" Height="14" Background="#858585" HorizontalAlignment="Left" Margin="2,0,0,0"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True"><Setter TargetName="Track" Property="Background" Value="#5A5A5A"/><Setter TargetName="Thumb" Property="Background" Value="#CCCCCC"/><Setter TargetName="Thumb" Property="HorizontalAlignment" Value="Right"/><Setter TargetName="Thumb" Property="Margin" Value="0,0,2,0"/></Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="SectionTitle" TargetType="TextBlock"><Setter Property="Foreground" Value="{StaticResource TextPrimary}"/><Setter Property="FontSize" Value="18"/><Setter Property="FontWeight" Value="SemiBold"/><Setter Property="Height" Value="40"/></Style>
+        <Style x:Key="SectionKicker" TargetType="TextBlock"><Setter Property="Foreground" Value="{StaticResource TextSecondary}"/><Setter Property="FontSize" Value="10"/><Setter Property="FontWeight" Value="Bold"/><Setter Property="TextOptions.TextFormattingMode" Value="Display"/></Style>
+        <Style x:Key="SettingLabel" TargetType="TextBlock"><Setter Property="Foreground" Value="{StaticResource TextPrimary}"/><Setter Property="FontSize" Value="12"/><Setter Property="VerticalAlignment" Value="Center"/></Style>
+        <Style x:Key="SettingHint" TargetType="TextBlock"><Setter Property="Foreground" Value="{StaticResource TextSecondary}"/><Setter Property="FontSize" Value="11"/><Setter Property="TextWrapping" Value="Wrap"/></Style>
+    </Window.Resources>
+
+    <Border Background="{StaticResource BgMain}" BorderBrush="{StaticResource BorderColor}" BorderThickness="1">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="26"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="56"/>
+            </Grid.RowDefinitions>
+
+            <!-- Title Bar -->
+            <Grid Grid.Row="0" Background="{StaticResource BgTitle}" MouseLeftButtonDown="TitleBar_MouseDown">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Text="Settings" Foreground="{StaticResource TextPrimary}" FontSize="11" VerticalAlignment="Center" Margin="10,0,0,0"/>
+                <Button Grid.Column="1" Style="{StaticResource CloseChromeBtn}" Click="Cancel_Click" ToolTip="Close" WindowChrome.IsHitTestVisibleInChrome="True">
+                    <Path Data="M2,2 L12,12 M12,2 L2,12" Stroke="#CCCCCC" StrokeThickness="1" Width="10" Height="10" Stretch="Uniform"/>
+                </Button>
+            </Grid>
+
+            <!-- Body: LDPlayer-style two column settings shell -->
+            <Grid Grid.Row="1">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="220"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Left Nav -->
+                <Border Grid.Column="0" Background="{StaticResource BgPanel}" Padding="10,18,10,0">
+                    <StackPanel>
+                        <TextBlock Text="SETTINGS" Height="34" Foreground="{StaticResource TextSecondary}" FontSize="10" FontWeight="Bold" Margin="10,0,0,0" VerticalAlignment="Center"/>
+                        <Border Height="26" Width="200" Margin="0,0,0,14" Background="#29292E" BorderBrush="#3E3E3E" BorderThickness="1">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="28"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Path Data="M7,3 A4,4 0 1,0 7,11 A4,4 0 1,0 7,3 M10,10 L14,14" Stroke="#858585" StrokeThickness="1.15" Fill="Transparent" Width="14" Height="14" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                <TextBox x:Name="SettingsSearchBox" Grid.Column="1" Text="Search settings" Background="Transparent" BorderThickness="0" Foreground="#858585" CaretBrush="#CCCCCC" FontSize="12" Padding="0,3,8,3" VerticalContentAlignment="Center"/>
+                            </Grid>
+                        </Border>
+
+                        <RadioButton x:Name="DisplayNav" GroupName="SettingsNav" Content="Display" IsChecked="True" Style="{StaticResource NavRadio}" Click="Nav_Click" Tag="M2,3 L14,3 L14,13 L2,13 Z M5,6 L11,6 M5,9 L11,9"/>
+                        <RadioButton x:Name="AdvancedNav" GroupName="SettingsNav" Content="Advanced" Style="{StaticResource NavRadio}" Click="Nav_Click" Tag="M8,3 A2,2 0 1,0 8,7 A2,2 0 1,0 8,3 Z M8,7 L8,13 M3,5 L5,3 M11,13 L13,11 M3,11 L5,13 M11,3 L13,5"/>
+                        <RadioButton x:Name="DeviceNav" GroupName="SettingsNav" Content="Device Identity" Style="{StaticResource NavRadio}" Click="Nav_Click" Tag="M5,2 L11,2 L12,14 L4,14 Z M6,4 L10,4 M6,11 L10,11"/>
+                        <RadioButton x:Name="DiskNav" GroupName="SettingsNav" Content="Case Storage" Style="{StaticResource NavRadio}" Click="Nav_Click" Tag="M3,4 L13,4 L13,12 L3,12 Z M5,6 L11,6 M5,9 L11,9"/>
+                        <RadioButton x:Name="AudioNav" GroupName="SettingsNav" Content="Audio" Style="{StaticResource NavRadio}" Click="Nav_Click" Tag="M10,3 L10,11 M10,3 L13,4 M7,11 A2,2 0 1,0 7,14 A2,2 0 1,0 7,11 Z"/>
+                        <RadioButton x:Name="NetworkNav" GroupName="SettingsNav" Content="Network Security" Style="{StaticResource NavRadio}" Click="Nav_Click" Tag="M2,8 L5,5 L8,8 L11,5 L14,8 M2,12 L5,9 L8,12 L11,9 L14,12"/>
+                        <RadioButton x:Name="HotkeysNav" GroupName="SettingsNav" Content="Hotkeys" Style="{StaticResource NavRadio}" Click="Nav_Click" Tag="M2,4 L14,4 L14,12 L2,12 Z M4,6 L5,6 M7,6 L8,6 M10,6 L11,6 M5,10 L11,10"/>
+                        <RadioButton x:Name="RenderNav" GroupName="SettingsNav" Content="Performance" Style="{StaticResource NavRadio}" Click="Nav_Click" Tag="M8,2 L14,8 L8,14 L2,8 Z M8,5 L11,8 L8,11 L5,8 Z"/>
+                        <RadioButton x:Name="OtherNav" GroupName="SettingsNav" Content="Other" Style="{StaticResource NavRadio}" Click="Nav_Click" Tag="M4,8 A1,1 0 1,0 4,10 A1,1 0 1,0 4,8 Z M8,8 A1,1 0 1,0 8,10 A1,1 0 1,0 8,8 Z M12,8 A1,1 0 1,0 12,10 A1,1 0 1,0 12,8 Z"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Right Content -->
+                <Border Grid.Column="1" Background="{StaticResource BgMain}">
+                    <TabControl x:Name="SettingsTabs" Background="Transparent" BorderThickness="0" Padding="0" SelectedIndex="0">
+                        <TabControl.Resources>
+                            <Style TargetType="TabItem">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                            </Style>
+                        </TabControl.Resources>
+
+                        <!-- Display -->
+                        <TabItem>
+                            <ScrollViewer VerticalScrollBarVisibility="Hidden">
+                                <StackPanel Margin="40,30,36,20">
+                                    <TextBlock Text="Display" Style="{StaticResource SectionTitle}"/>
+
+                                    <Grid Margin="0,28,0,0">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="146"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Text="Resolution" Style="{StaticResource SettingLabel}" VerticalAlignment="Top" Margin="0,8,0,0"/>
+                                        <StackPanel Grid.Column="1">
+                                            <StackPanel Orientation="Horizontal" Margin="0,0,0,0">
+                                                <RadioButton x:Name="ResModeLandscape" Content="Landscape" GroupName="ResMode" IsChecked="True" Style="{StaticResource SegmentOption}"/>
+                                                <RadioButton x:Name="ResModePortrait" Content="Portrait" GroupName="ResMode" Style="{StaticResource SegmentOption}" Margin="1,0,0,0"/>
+                                                <RadioButton x:Name="ResModeLarge" Content="Large" GroupName="ResMode" Style="{StaticResource SegmentOption}" Margin="1,0,0,0"/>
+                                                <RadioButton x:Name="ResModeCustom" Content="Custom" GroupName="ResMode" Style="{StaticResource SegmentOption}" Margin="1,0,0,0"/>
+                                            </StackPanel>
+                                            <Border Background="{StaticResource BgCard}" CornerRadius="0" Padding="16" Width="347" HorizontalAlignment="Left" Margin="0,0,0,0">
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="*"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <StackPanel>
+                                                        <RadioButton x:Name="Res1920x1080" Content="1920 x 1080  DPI 280" GroupName="Resolution" Foreground="{StaticResource TextPrimary}" Margin="0,0,0,14"/>
+                                                        <RadioButton x:Name="Res1600x900" Content="1600 x 900   DPI 240" GroupName="Resolution" Foreground="{StaticResource TextPrimary}" Margin="0,0,0,14"/>
+                                                        <RadioButton x:Name="Res1280x720" Content="1280 x 720   DPI 240" GroupName="Resolution" IsChecked="True" Foreground="{StaticResource TextPrimary}" Margin="0,0,0,14"/>
+                                                        <RadioButton x:Name="Res960x540" Content="960 x 540    DPI 160" GroupName="Resolution" Foreground="{StaticResource TextPrimary}"/>
+                                                    </StackPanel>
+                                                    <StackPanel Grid.Column="1">
+                                                        <RadioButton x:Name="Res1080x1920" Content="1080 x 1920  DPI 480" GroupName="Resolution" Foreground="{StaticResource TextPrimary}" Margin="0,0,0,14"/>
+                                                        <RadioButton x:Name="Res900x1600" Content="900 x 1600   DPI 320" GroupName="Resolution" Foreground="{StaticResource TextPrimary}" Margin="0,0,0,14"/>
+                                                        <RadioButton x:Name="Res720x1280" Content="720 x 1280   DPI 320" GroupName="Resolution" Foreground="{StaticResource TextPrimary}" Margin="0,0,0,14"/>
+                                                        <RadioButton x:Name="Res540x960" Content="540 x 960    DPI 240" GroupName="Resolution" Foreground="{StaticResource TextPrimary}"/>
+                                                    </StackPanel>
+                                                </Grid>
+                                            </Border>
+                                            <Grid Width="347" HorizontalAlignment="Left" Margin="0,16,0,0">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="60"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="60"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                </Grid.ColumnDefinitions>
+                                                <TextBlock Text="Width" Style="{StaticResource SettingLabel}" HorizontalAlignment="Right" Margin="0,0,10,0"/>
+                                                <TextBox x:Name="ResolutionWidthBox" Grid.Column="1" Text="1280" Style="{StaticResource LdTextBox}"/>
+                                                <TextBlock Grid.Column="2" Text="Height" Style="{StaticResource SettingLabel}" HorizontalAlignment="Right" Margin="0,0,10,0"/>
+                                                <TextBox x:Name="ResolutionHeightBox" Grid.Column="3" Text="720" Style="{StaticResource LdTextBox}"/>
+                                            </Grid>
+                                        </StackPanel>
+                                    </Grid>
+
+                                    <Grid Margin="0,40,0,0">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="146"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Text="Window" Style="{StaticResource SettingLabel}" VerticalAlignment="Top"/>
+                                        <StackPanel Grid.Column="1">
+                                            <Grid Height="36">
+                                                <TextBlock Text="Auto rotate Android screen" Style="{StaticResource SettingLabel}"/>
+                                                <CheckBox x:Name="AutoRotateToggle" HorizontalAlignment="Right" IsChecked="True" Style="{StaticResource SwitchCheck}"/>
+                                            </Grid>
+                                            <Grid Height="36">
+                                                <TextBlock Text="Lock window size" Style="{StaticResource SettingLabel}"/>
+                                                <CheckBox x:Name="LockWindowToggle" HorizontalAlignment="Right" Style="{StaticResource SwitchCheck}"/>
+                                            </Grid>
+                                        </StackPanel>
+                                    </Grid>
+
+                                </StackPanel>
+                            </ScrollViewer>
+                        </TabItem>
+
+                        <!-- Advanced -->
+                        <TabItem>
+                            <ScrollViewer VerticalScrollBarVisibility="Hidden">
+                                <StackPanel Margin="40,30,36,20">
+                                    <TextBlock Text="Advanced" Style="{StaticResource SectionTitle}"/>
+                                    <Grid Margin="0,8,0,0"><Grid.ColumnDefinitions><ColumnDefinition Width="146"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                        <TextBlock Text="Acceleration" Style="{StaticResource SettingLabel}"/>
+                                        <ComboBox x:Name="AccelCombo" Grid.Column="1" SelectedIndex="0" Width="260" HorizontalAlignment="Left" Style="{StaticResource LdCombo}">
+                                            <ComboBoxItem Content="Automatic (recommended)" Tag="auto"/>
+                                            <ComboBoxItem Content="Windows Hypervisor Platform (WHPX)" Tag="whpx"/>
+                                            <ComboBoxItem Content="Software CPU fallback" Tag="software"/>
+                                        </ComboBox>
+                                    </Grid>
+                                    <Grid Margin="0,28,0,0"><Grid.ColumnDefinitions><ColumnDefinition Width="146"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                        <TextBlock Text="Runtime" Style="{StaticResource SettingLabel}"/>
+                                        <StackPanel Grid.Column="1">
+                                            <Grid Width="360" HorizontalAlignment="Left"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                                <TextBox x:Name="RuntimePath" Text="runtime/" Style="{StaticResource LdTextBox}"/>
+                                                <Button Grid.Column="1" Content="Browse" Click="BrowseRuntime_Click" Style="{StaticResource LdButton}" Margin="8,0,0,0"/>
+                                            </Grid>
+                                            <TextBlock Text="Runtime path used by REPlayer backends and tooling." Style="{StaticResource SettingHint}" Margin="0,8,0,0"/>
+                                        </StackPanel>
+                                    </Grid>
+                                </StackPanel>
+                            </ScrollViewer>
+                        </TabItem>
+
+                        <!-- Device -->
+                        <TabItem>
+                            <ScrollViewer VerticalScrollBarVisibility="Hidden"><StackPanel Margin="40,24,36,14">
+                                <TextBlock Text="Device Identity" Style="{StaticResource SectionTitle}"/>
+                                <Grid Margin="0,20,0,0"><Grid.ColumnDefinitions><ColumnDefinition Width="146"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                    <TextBlock Text="Boot profile" Style="{StaticResource SettingLabel}"/>
+                                    <StackPanel Grid.Column="1">
+                                        <ComboBox x:Name="BootProfileCombo" SelectedIndex="0" Width="360" HorizontalAlignment="Left" Style="{StaticResource LdCombo}">
+                                            <ComboBoxItem Content="Release Observation — root denied, fixed portrait" Tag="api34-persona"/>
+                                            <ComboBoxItem Content="Resizable Analysis — portrait / landscape, root capable" Tag="api34-resizable"/>
+                                            <ComboBoxItem Content="Play Compatibility — Google Play services and store" Tag="play-compat"/>
+                                        </ComboBox>
+                                        <TextBlock Text="Release Observation keeps ro.debuggable=0 and denies adb root. Resizable Analysis uses a separate userdebug-capable baseline because Android 14 disables physical display-profile switching in the release lane. Changes take effect on next boot." Style="{StaticResource SettingHint}" Margin="0,6,0,8" TextWrapping="Wrap"/>
+                                    </StackPanel>
+                                </Grid>
+                                <Grid Margin="0,8,0,0"><Grid.ColumnDefinitions><ColumnDefinition Width="146"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                    <TextBlock Text="Persona" Style="{StaticResource SettingLabel}"/>
+                                    <StackPanel Grid.Column="1" Width="360" HorizontalAlignment="Left">
+                                        <Grid Height="34"><TextBlock Text="Enforce verified persona" Style="{StaticResource SettingLabel}"/><CheckBox x:Name="PersonaEnabledToggle" IsChecked="True" HorizontalAlignment="Right" Style="{StaticResource SwitchCheck}"/></Grid>
+                                        <Grid Margin="0,8,0,0"><Grid.ColumnDefinitions><ColumnDefinition Width="100"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                            <TextBlock Text="Mode" Style="{StaticResource SettingLabel}"/>
+                                            <ComboBox x:Name="PersonaModeCombo" Grid.Column="1" SelectedIndex="0" Style="{StaticResource LdCombo}">
+                                                <ComboBoxItem Content="Stable per instance" Tag="stable-instance"/>
+                                                <ComboBoxItem Content="Rotate per case" Tag="rotate-case"/>
+                                            </ComboBox>
+                                        </Grid>
+                                        <Grid Margin="0,12,0,0"><Grid.ColumnDefinitions><ColumnDefinition Width="100"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                            <TextBlock Text="Device name" Style="{StaticResource SettingLabel}"/><TextBox x:Name="DeviceModelBox" Grid.Column="1" Text="REPlayer Virtual Device" Style="{StaticResource LdTextBox}"/>
+                                        </Grid>
+                                        <Grid Margin="0,12,0,0"><Grid.ColumnDefinitions><ColumnDefinition Width="100"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                            <TextBlock Text="Observed maker" Style="{StaticResource SettingLabel}"/><TextBox x:Name="DeviceMakerBox" Grid.Column="1" Text="REPlayer" Style="{StaticResource LdTextBox}" IsReadOnly="True"/>
+                                        </Grid>
+                                        <Grid Margin="0,12,0,0"><Grid.ColumnDefinitions><ColumnDefinition Width="100"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                            <TextBlock Text="Seed" Style="{StaticResource SettingLabel}"/><TextBox x:Name="PersonaSeedBox" Grid.Column="1" Text="" Style="{StaticResource LdTextBox}"/>
+                                        </Grid>
+                                        <Grid Margin="0,12,0,0"><Grid.ColumnDefinitions><ColumnDefinition Width="100"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                            <TextBlock Text="Locale" Style="{StaticResource SettingLabel}"/><ComboBox x:Name="PersonaLocaleCombo" Grid.Column="1" Style="{StaticResource LdCombo}"/>
+                                        </Grid>
+                                        <Grid Margin="0,12,0,0"><Grid.ColumnDefinitions><ColumnDefinition Width="100"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                            <TextBlock Text="Timezone" Style="{StaticResource SettingLabel}"/><ComboBox x:Name="PersonaTimezoneCombo" Grid.Column="1" Style="{StaticResource LdCombo}"/>
+                                        </Grid>
+                                        <Grid Margin="0,12,0,0"><Grid.ColumnDefinitions><ColumnDefinition Width="100"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                            <TextBlock Text="Country" Style="{StaticResource SettingLabel}"/><ComboBox x:Name="PersonaCountryCombo" Grid.Column="1" Style="{StaticResource LdCombo}"/>
+                                        </Grid>
+                                    </StackPanel>
+                                </Grid>
+                                <TextBlock Text="REPlayer derives a deterministic Android ID and reserved test phone number locally. The seed is never written to case evidence. Emulator serial and hardware-backed IDs/IMEI are observed only, not claimed as controlled." Style="{StaticResource SettingHint}" Margin="146,10,0,0" TextWrapping="Wrap"/>
+                            </StackPanel></ScrollViewer>
+                        </TabItem>
+
+                        <!-- Disk -->
+                        <TabItem>
+                            <ScrollViewer VerticalScrollBarVisibility="Hidden"><StackPanel Margin="40,30,36,20">
+                                <TextBlock Text="Case Storage" Style="{StaticResource SectionTitle}"/>
+                                <Grid Margin="0,28,0,0"><Grid.ColumnDefinitions><ColumnDefinition Width="146"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                    <TextBlock Text="Storage" Style="{StaticResource SettingLabel}"/>
+                                    <StackPanel Grid.Column="1">
+                                        <Slider x:Name="StorageSlider" Minimum="8" Maximum="128" Value="16" TickFrequency="8" IsSnapToTickEnabled="True" Width="260" HorizontalAlignment="Left"/>
+                                        <TextBlock Text="{Binding ElementName=StorageSlider, Path=Value, StringFormat=Data disk: {0:F0} GB}" Style="{StaticResource SettingHint}" Margin="0,6,0,20"/>
+                                        <Grid Height="36"><TextBlock Text="Persistent cache partition" Style="{StaticResource SettingLabel}"/><CheckBox x:Name="FastDiskToggle" IsChecked="True" HorizontalAlignment="Right" Style="{StaticResource SwitchCheck}"/></Grid>
+                                        <TextBlock Text="Case mode" Style="{StaticResource SettingLabel}" Margin="0,6,0,6"/>
+                                        <UniformGrid Columns="2" Margin="0,0,0,10">
+                                            <RadioButton x:Name="DisposableCaseRadio" Content="Read-only detonation" GroupName="CaseMode" IsChecked="True" Style="{StaticResource SegmentOption}" Checked="CaseMode_Changed"/>
+                                            <RadioButton x:Name="WritableCaseRadio" Content="Writable disposable" GroupName="CaseMode" Style="{StaticResource SegmentOption}" Margin="1,0,0,0" Checked="CaseMode_Changed"/>
+                                        </UniformGrid>
+                                        <Grid Height="36"><TextBlock Text="Keep base system image read-only" Style="{StaticResource SettingLabel}"/><CheckBox x:Name="ReadOnlyBaseToggle" IsChecked="True" HorizontalAlignment="Right" Style="{StaticResource SwitchCheck}"/></Grid>
+                                        <TextBlock Text="Every run uses a fresh clone, captures traffic from process start, cold boots without snapshots, preserves evidence, and disposes run storage on stop. Read-only detonation is required for hostile APKs." Style="{StaticResource SettingHint}" TextWrapping="Wrap" Margin="0,8,0,0"/>
+                                    </StackPanel>
+                                </Grid>
+                            </StackPanel></ScrollViewer>
+                        </TabItem>
+
+                        <!-- Audio -->
+                        <TabItem>
+                            <ScrollViewer VerticalScrollBarVisibility="Hidden"><StackPanel Margin="40,30,36,20">
+                                <TextBlock Text="Audio" Style="{StaticResource SectionTitle}"/>
+                                <Grid Margin="0,28,0,0"><Grid.ColumnDefinitions><ColumnDefinition Width="146"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                    <TextBlock Text="Output" Style="{StaticResource SettingLabel}"/>
+                                    <StackPanel Grid.Column="1">
+                                        <Grid Height="36"><TextBlock Text="Enable speaker output" Style="{StaticResource SettingLabel}"/><CheckBox x:Name="SpeakerToggle" HorizontalAlignment="Right" Style="{StaticResource SwitchCheck}" Checked="AudioState_Changed" Unchecked="AudioState_Changed"/></Grid>
+                                        <Grid Height="36"><TextBlock Text="Mute Android media" Style="{StaticResource SettingLabel}"/><CheckBox x:Name="AudioMuteToggle" HorizontalAlignment="Right" Style="{StaticResource SwitchCheck}" Checked="AudioState_Changed" Unchecked="AudioState_Changed"/></Grid>
+                                        <TextBlock Text="Initial media volume" Style="{StaticResource SettingLabel}" Margin="0,8,0,6"/>
+                                        <Slider x:Name="AudioVolumeSlider" Minimum="0" Maximum="100" Value="70" TickFrequency="5" IsSnapToTickEnabled="True" Width="260" HorizontalAlignment="Left"/>
+                                        <TextBlock Text="{Binding ElementName=AudioVolumeSlider, Path=Value, StringFormat=Volume: {0:F0}%}" Style="{StaticResource SettingHint}" Margin="0,5,0,10"/>
+                                        <Grid Height="36"><TextBlock Text="Enable microphone input" Style="{StaticResource SettingLabel}"/><CheckBox x:Name="MicToggle" HorizontalAlignment="Right" Style="{StaticResource SwitchCheck}"/></Grid>
+                                        <TextBlock Text="Speaker and microphone flags apply at launch. Media volume is validated from 0–100% and applied after Android reports boot_completed." Style="{StaticResource SettingHint}" Margin="0,14,0,0" TextWrapping="Wrap"/>
+                                    </StackPanel>
+                                </Grid>
+                            </StackPanel></ScrollViewer>
+                        </TabItem>
+
+                        <!-- Network -->
+                        <TabItem>
+                            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                                <StackPanel Margin="40,30,36,24">
+                                    <TextBlock Text="Network Security" Style="{StaticResource SectionTitle}"/>
+
+                                    <Grid Margin="0,24,0,0">
+                                        <Grid.ColumnDefinitions><ColumnDefinition Width="146"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                        <TextBlock Text="Isolation" Style="{StaticResource SettingLabel}"/>
+                                        <StackPanel Grid.Column="1">
+                                            <Grid Height="34">
+                                                <StackPanel>
+                                                    <TextBlock x:Name="SecureIsolationLabel" Text="Secure isolation (requires UAC)" Style="{StaticResource SettingLabel}"/>
+                                                    <TextBlock Text="Installs and enforces a Windows host firewall policy with administrator approval." Style="{StaticResource SettingHint}"/>
+                                                </StackPanel>
+                                                <CheckBox x:Name="SecureIsolationToggle" HorizontalAlignment="Right" VerticalAlignment="Top" Style="{StaticResource SwitchCheck}"/>
+                                            </Grid>
+                                            <Grid Height="52" Margin="0,10,0,0">
+                                                <StackPanel>
+                                                    <TextBlock x:Name="NetworkIsolationLabel" Text="Network isolation (requires UAC)" Style="{StaticResource SettingLabel}"/>
+                                                    <TextBlock Text="Applies process-scoped Windows rules to the bundled emulator and QEMU executables." Style="{StaticResource SettingHint}"/>
+                                                </StackPanel>
+                                                <CheckBox x:Name="NetworkIsolationToggle" HorizontalAlignment="Right" VerticalAlignment="Top" Style="{StaticResource SwitchCheck}"/>
+                                            </Grid>
+                                            <Grid Margin="0,12,0,0" Width="330" HorizontalAlignment="Left">
+                                                <Grid.ColumnDefinitions><ColumnDefinition Width="110"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                                <TextBlock Text="Policy" Style="{StaticResource SettingLabel}"/>
+                                                <ComboBox x:Name="NetworkIsolationModeCombo" Grid.Column="1" Style="{StaticResource LdCombo}">
+                                                    <ComboBoxItem Content="Internet only" Tag="internet-only"/>
+                                                    <ComboBoxItem Content="Offline" Tag="offline"/>
+                                                    <ComboBoxItem Content="Unrestricted" Tag="unrestricted"/>
+                                                    <ComboBoxItem Content="Custom" Tag="custom"/>
+                                                </ComboBox>
+                                            </Grid>
+                                        </StackPanel>
+                                    </Grid>
+
+                                    <Border BorderBrush="#454545" BorderThickness="1" Background="#252526" Padding="12,10" Margin="146,16,0,0">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                            <StackPanel>
+                                                <TextBlock Text="Host policy (Windows administrator)" Foreground="#CCCCCC" FontSize="12"/>
+                                                <TextBlock x:Name="NetworkPolicyStatusText" Text="Checking configured policy..." Style="{StaticResource SettingHint}" Margin="0,3,12,0" TextWrapping="Wrap"/>
+                                                <TextBlock Text="First use installs a hash-verified worker under Program Files, then applies policy. Windows may show two UAC prompts; the main REPlayer process remains non-administrator." Style="{StaticResource SettingHint}" Margin="0,3,12,0" TextWrapping="Wrap"/>
+                                            </StackPanel>
+                                            <Button x:Name="ApplyNetworkPolicyButton" Grid.Column="1" Content="Apply policy (UAC)" Style="{StaticResource LdButton}" Click="ApplyNetworkPolicy_Click" MinWidth="132" Height="28"/>
+                                        </Grid>
+                                    </Border>
+
+                                    <Border Height="1" Background="#3E3E3E" Margin="0,22,0,20"/>
+
+                                    <Grid>
+                                        <Grid.ColumnDefinitions><ColumnDefinition Width="146"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                        <TextBlock Text="Destinations" Style="{StaticResource SettingLabel}"/>
+                                        <StackPanel Grid.Column="1" x:Name="NetworkDestinationOptions">
+                                            <Grid Height="31"><TextBlock Text="Block host services / 10.0.2.2" Style="{StaticResource SettingLabel}"/><CheckBox x:Name="BlockHostServicesToggle" HorizontalAlignment="Right" Style="{StaticResource SwitchCheck}"/></Grid>
+                                            <Grid Height="31"><TextBlock Text="Block private and CGNAT ranges" Style="{StaticResource SettingLabel}"/><CheckBox x:Name="BlockPrivateNetworksToggle" HorizontalAlignment="Right" Style="{StaticResource SwitchCheck}"/></Grid>
+                                            <Grid Height="31"><TextBlock Text="Block link-local and metadata ranges" Style="{StaticResource SettingLabel}"/><CheckBox x:Name="BlockLinkLocalToggle" HorizontalAlignment="Right" Style="{StaticResource SwitchCheck}"/></Grid>
+                                            <Grid Height="31"><TextBlock Text="Block multicast and reserved ranges" Style="{StaticResource SettingLabel}"/><CheckBox x:Name="BlockMulticastToggle" HorizontalAlignment="Right" Style="{StaticResource SwitchCheck}"/></Grid>
+                                            <TextBlock Text="Internet-only uses all destination blocks. Select Custom to change them individually. Applying these host-policy toggles requires UAC." Style="{StaticResource SettingHint}" Margin="0,8,0,0" TextWrapping="Wrap"/>
+                                        </StackPanel>
+                                    </Grid>
+
+                                    <Grid Margin="0,22,0,0">
+                                        <Grid.ColumnDefinitions><ColumnDefinition Width="146"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                        <TextBlock Text="DNS / proxy" Style="{StaticResource SettingLabel}"/>
+                                        <StackPanel Grid.Column="1">
+                                            <Grid Height="31"><TextBlock Text="Use explicit DNS servers" Style="{StaticResource SettingLabel}"/><CheckBox x:Name="SafeDnsToggle" HorizontalAlignment="Right" Style="{StaticResource SwitchCheck}"/></Grid>
+                                            <Grid Width="330" HorizontalAlignment="Left" Margin="0,8,0,0"><Grid.ColumnDefinitions><ColumnDefinition Width="110"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><TextBlock Text="DNS IPs" Style="{StaticResource SettingLabel}"/><TextBox x:Name="DnsServersBox" Grid.Column="1" Style="{StaticResource LdTextBox}" Text="1.1.1.1,9.9.9.9"/></Grid>
+                                            <Grid Height="31" Margin="0,12,0,0"><TextBlock Text="Allow local analysis proxy" Style="{StaticResource SettingLabel}"/><CheckBox x:Name="AllowHostProxyToggle" HorizontalAlignment="Right" Style="{StaticResource SwitchCheck}"/></Grid>
+                                            <Grid Width="330" HorizontalAlignment="Left" Margin="0,8,0,0"><Grid.ColumnDefinitions><ColumnDefinition Width="110"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><TextBlock Text="Proxy port" Style="{StaticResource SettingLabel}"/><TextBox x:Name="HostProxyPortBox" Grid.Column="1" Style="{StaticResource LdTextBox}" Text="8080"/></Grid>
+                                            <TextBlock Text="The guest filter permits only the selected TCP loopback port. Host rules still block private routes and policy drift stops the active case." Style="{StaticResource SettingHint}" Margin="0,6,0,10"/>
+                                        </StackPanel>
+                                    </Grid>
+
+                                    <Grid Margin="0,22,0,0">
+                                        <Grid.ColumnDefinitions><ColumnDefinition Width="146"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                        <TextBlock Text="Runtime" Style="{StaticResource SettingLabel}"/>
+                                        <StackPanel Grid.Column="1">
+                                            <Grid Width="330" HorizontalAlignment="Left"><Grid.ColumnDefinitions><ColumnDefinition Width="110"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><TextBlock Text="Preferred ADB" Style="{StaticResource SettingLabel}"/><TextBox x:Name="AdbPort" Grid.Column="1" Text="5555" Style="{StaticResource LdTextBox}"/></Grid>
+                                            <Grid Width="330" HorizontalAlignment="Left" Margin="0,8,0,0"><Grid.ColumnDefinitions><ColumnDefinition Width="110"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><TextBlock Text="Frida server" Style="{StaticResource SettingLabel}"/><TextBox x:Name="FridaPortBox" Grid.Column="1" Text="27042" Style="{StaticResource LdTextBox}"/></Grid>
+                                            <Grid Width="330" HorizontalAlignment="Left" Margin="0,8,0,0"><Grid.ColumnDefinitions><ColumnDefinition Width="110"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><TextBlock Text="mitmproxy" Style="{StaticResource SettingLabel}"/><TextBox x:Name="MitmProxyPortBox" Grid.Column="1" Text="8080" Style="{StaticResource LdTextBox}"/></Grid>
+                                            <Grid Height="31" Margin="0,10,0,0"><TextBlock Text="Full emulator network speed" Style="{StaticResource SettingLabel}"/><CheckBox x:Name="NatToggle" IsChecked="True" HorizontalAlignment="Right" Style="{StaticResource SwitchCheck}"/></Grid>
+                                        </StackPanel>
+                                    </Grid>
+
+                                </StackPanel>
+                            </ScrollViewer>
+                        </TabItem>
+
+                        <!-- Hotkeys -->
+                        <TabItem>
+                            <ScrollViewer VerticalScrollBarVisibility="Hidden"><StackPanel Margin="40,30,36,20">
+                                <TextBlock Text="Hotkeys" Style="{StaticResource SectionTitle}"/>
+                                <Grid Margin="0,28,0,0"><Grid.ColumnDefinitions><ColumnDefinition Width="146"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                    <TextBlock Text="Navigation" Style="{StaticResource SettingLabel}"/>
+                                    <UniformGrid Grid.Column="1" Columns="2" Width="360" HorizontalAlignment="Left">
+                                        <TextBlock Text="Back" Style="{StaticResource SettingLabel}" Margin="0,0,0,10"/><TextBox x:Name="BackHotkeyBox" Text="Esc" Style="{StaticResource LdTextBox}" Margin="0,0,0,10"/>
+                                        <TextBlock Text="Home" Style="{StaticResource SettingLabel}" Margin="0,0,0,10"/><TextBox x:Name="HomeHotkeyBox" Text="Home" Style="{StaticResource LdTextBox}" Margin="0,0,0,10"/>
+                                        <TextBlock Text="App Switcher" Style="{StaticResource SettingLabel}" Margin="0,0,0,10"/><TextBox x:Name="AppSwitcherHotkeyBox" Text="Ctrl+Tab" Style="{StaticResource LdTextBox}" Margin="0,0,0,10"/>
+                                        <TextBlock Text="Full Screen" Style="{StaticResource SettingLabel}"/><TextBox x:Name="FullscreenHotkeyBox" Text="F11" Style="{StaticResource LdTextBox}"/>
+                                    </UniformGrid>
+                                </Grid>
+                            </StackPanel></ScrollViewer>
+                        </TabItem>
+
+                        <!-- Performance -->
+                        <TabItem>
+                            <ScrollViewer VerticalScrollBarVisibility="Hidden"><StackPanel Margin="40,30,36,20">
+                                <TextBlock Text="Performance / Rendering" Style="{StaticResource SectionTitle}"/>
+                                <Grid Margin="0,28,0,0"><Grid.ColumnDefinitions><ColumnDefinition Width="146"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                    <TextBlock Text="Renderer" Style="{StaticResource SettingLabel}"/>
+                                    <StackPanel Grid.Column="1">
+                                        <TextBlock Text="Emulation profile" Style="{StaticResource SettingLabel}" Margin="0,0,0,6"/>
+                                        <ComboBox x:Name="EmulationPerformanceModeCombo" SelectedIndex="1" Width="300" HorizontalAlignment="Left" Style="{StaticResource LdCombo}">
+                                            <ComboBoxItem Content="Power Saver — 30 FPS, 2 cores, 2 GB" Tag="power-saver"/>
+                                            <ComboBoxItem Content="Balanced — 60 FPS, 3 cores, 3 GB" Tag="balanced"/>
+                                            <ComboBoxItem Content="High Performance — 60 FPS, 4 cores, 4 GB" Tag="high-performance"/>
+                                        </ComboBox>
+                                        <TextBlock Text="Profiles set CPU, memory, refresh ceiling, and scheduler priority. For ARM-translated games, use High Performance with OpenGL; Gaming Lite is optional for x86/native efficiency." Style="{StaticResource SettingHint}" Margin="0,8,0,18"/>
+
+                                        <Grid Height="36"><TextBlock Text="Gaming Lite guest" Style="{StaticResource SettingLabel}"/><CheckBox x:Name="LeanGuestToggle" HorizontalAlignment="Right" Style="{StaticResource SwitchCheck}"/></Grid>
+                                        <TextBlock Text="Reduces guest animation and background scanning overhead without changing ADB, package provisioning, or core Android services. Enable for x86/native workloads or tighter memory use." Style="{StaticResource SettingHint}" Margin="0,0,0,10"/>
+                                        <Grid Height="36"><TextBlock Text="Prefer dedicated GPU" Style="{StaticResource SettingLabel}"/><CheckBox x:Name="PreferDiscreteGpuToggle" HorizontalAlignment="Right" Style="{StaticResource SwitchCheck}"/></Grid>
+                                        <TextBlock Text="Requests the Windows high-performance GPU for emulator.exe and qemu-system-x86_64.exe. Useful on hybrid Intel/NVIDIA laptops." Style="{StaticResource SettingHint}" Margin="0,0,0,18"/>
+
+                                        <TextBlock Text="Renderer engine" Style="{StaticResource SettingLabel}" Margin="0,0,0,6"/>
+                                        <ComboBox x:Name="RendererEngineCombo" SelectedIndex="0" Width="240" HorizontalAlignment="Left" Style="{StaticResource LdCombo}">
+                                            <ComboBoxItem Content="OpenGL" Tag="opengl"/>
+                                            <ComboBoxItem Content="Host Auto" Tag="host"/>
+                                            <ComboBoxItem Content="Vulkan" Tag="vulkan"/>
+                                            <ComboBoxItem Content="SwiftGL (software GL)" Tag="swiftgl"/>
+                                        </ComboBox>
+                                        <TextBlock Text="SwiftGL maps to the emulator's SwiftShader/SwANGLE software GL path for compatibility testing; OpenGL + Host GPU remains fastest on this machine." Style="{StaticResource SettingHint}" Margin="0,8,0,18"/>
+
+                                        <TextBlock Text="Frame-rate ceiling" Style="{StaticResource SettingLabel}" Margin="0,0,0,6"/>
+                                        <ComboBox x:Name="FpsCombo" Width="180" HorizontalAlignment="Left" Style="{StaticResource LdCombo}">
+                                            <ComboBoxItem Content="30 FPS" Tag="30"/>
+                                            <ComboBoxItem Content="60 FPS" Tag="60"/>
+                                            <ComboBoxItem Content="90 FPS" Tag="90"/>
+                                            <ComboBoxItem Content="120 FPS" Tag="120"/>
+                                            <ComboBoxItem Content="144 FPS" Tag="144"/>
+                                            <ComboBoxItem Content="240 FPS" Tag="240"/>
+                                        </ComboBox>
+                                        <TextBlock Text="The selected performance profile supplies the initial value; this control is the final validated ceiling." Style="{StaticResource SettingHint}" Margin="0,8,0,18"/>
+
+                                        <Grid Height="36"><TextBlock Text="VSync / frame lock" Style="{StaticResource SettingLabel}"/><CheckBox x:Name="VsyncToggle" IsChecked="True" HorizontalAlignment="Right" Style="{StaticResource SwitchCheck}"/></Grid>
+                                        <TextBlock Text="On locks the virtual display to the profile rate. Off leaves a 240Hz ceiling for games that manage their own frame pacing." Style="{StaticResource SettingHint}" Margin="0,0,0,10"/>
+                                        <Grid Height="36"><TextBlock Text="Adaptive guest refresh" Style="{StaticResource SettingLabel}"/><CheckBox x:Name="FreesyncToggle" HorizontalAlignment="Right" Style="{StaticResource SwitchCheck}"/></Grid>
+                                        <TextBlock Text="Allows Android to choose between 60Hz and the profile peak rate. This controls guest adaptive refresh; host monitor VRR remains a Windows/driver feature." Style="{StaticResource SettingHint}" Margin="0,0,0,18"/>
+
+                                        <Grid Height="36"><TextBlock Text="Low-latency input mode" Style="{StaticResource SettingLabel}"/><CheckBox x:Name="LowLatencyInputToggle" HorizontalAlignment="Right" Style="{StaticResource SwitchCheck}"/></Grid>
+                                    </StackPanel>
+                                </Grid>
+                            </StackPanel></ScrollViewer>
+                        </TabItem>
+
+                        <!-- Other -->
+                        <TabItem>
+                            <ScrollViewer VerticalScrollBarVisibility="Hidden"><StackPanel Margin="40,30,36,20">
+                                <TextBlock Text="Other" Style="{StaticResource SectionTitle}"/>
+                                <Grid Margin="0,28,0,0"><Grid.ColumnDefinitions><ColumnDefinition Width="146"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                    <TextBlock Text="Behavior" Style="{StaticResource SettingLabel}"/>
+                                    <StackPanel Grid.Column="1">
+                                        <Grid Height="36"><TextBlock Text="Start Android automatically" Style="{StaticResource SettingLabel}"/><CheckBox x:Name="AutoStartToggle" IsChecked="True" HorizontalAlignment="Right" Style="{StaticResource SwitchCheck}"/></Grid>
+                                        <Grid Height="36"><TextBlock Text="Keep window on top in mini mode" Style="{StaticResource SettingLabel}"/><CheckBox x:Name="MiniTopMostToggle" IsChecked="True" HorizontalAlignment="Right" Style="{StaticResource SwitchCheck}"/></Grid>
+                                        <Grid Height="36"><TextBlock Text="Show compact right toolbar" Style="{StaticResource SettingLabel}"/><CheckBox x:Name="CompactToolbarToggle" IsChecked="True" HorizontalAlignment="Right" Style="{StaticResource SwitchCheck}"/></Grid>
+                                        <Grid Height="36"><TextBlock Text="Keep launcher visible during cold boot" Style="{StaticResource SettingLabel}"/><CheckBox x:Name="ColdBootLauncherToggle" IsChecked="True" HorizontalAlignment="Right" Style="{StaticResource SwitchCheck}"/></Grid>
+                                        <TextBlock Text="Cold boots remain in the setup launcher with monotonic progress. REPlayer enters the emulator only after Android and its control channel are ready." Style="{StaticResource SettingHint}" Margin="0,6,0,0" TextWrapping="Wrap"/>
+                                    </StackPanel>
+                                </Grid>
+                            </StackPanel></ScrollViewer>
+                        </TabItem>
+                    </TabControl>
+                </Border>
+            </Grid>
+
+            <!-- Footer -->
+            <Border Grid.Row="2" Background="{StaticResource BgPanel}" BorderBrush="{StaticResource BorderColor}" BorderThickness="0,1,0,0" Padding="0,14,28,14">
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                    <Button Content="Cancel" Click="Cancel_Click" Style="{StaticResource LdButton}" Width="80" Height="28" Padding="0" Margin="0,0,10,0"/>
+                    <Button Content="Apply" Click="Apply_Click" Style="{StaticResource LdButton}" Width="80" Height="28" Padding="0" Margin="0,0,10,0"/>
+                    <Button Content="Save" Click="Save_Click" Style="{StaticResource BlueButton}" Width="80" Height="28" Padding="0"/>
+                </StackPanel>
+            </Border>
+        </Grid>
+    </Border>
+</Window>

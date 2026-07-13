@@ -1,0 +1,3 @@
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:left="26dp" android:top="26dp" android:right="26dp" android:bottom="26dp" android:drawable="@drawable/ic_debug" />
+</layer-list>

@@ -1,0 +1,157 @@
+<Window x:Class="ReVM.AndroidToolsDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Android Analysis Tools" Height="680" Width="980"
+        WindowStyle="None" ResizeMode="CanResize"
+        AllowsTransparency="True" Background="Transparent"
+        FontFamily="Segoe UI" TextOptions.TextFormattingMode="Display"
+        WindowStartupLocation="CenterOwner">
+    <WindowChrome.WindowChrome>
+        <WindowChrome CaptionHeight="26" ResizeBorderThickness="4" GlassFrameThickness="0" CornerRadius="0"/>
+    </WindowChrome.WindowChrome>
+
+    <Window.Resources>
+        <SolidColorBrush x:Key="BgMain" Color="#1E1E1E"/>
+        <SolidColorBrush x:Key="BgPanel" Color="#252526"/>
+        <SolidColorBrush x:Key="BgTitle" Color="#323233"/>
+        <SolidColorBrush x:Key="BgHover" Color="#3E3E3E"/>
+        <SolidColorBrush x:Key="BgActive" Color="#37373D"/>
+        <SolidColorBrush x:Key="BgPressed" Color="#2A2A2A"/>
+        <SolidColorBrush x:Key="TextPrimary" Color="#CCCCCC"/>
+        <SolidColorBrush x:Key="TextSecondary" Color="#858585"/>
+        <SolidColorBrush x:Key="BorderColor" Color="#3E3E3E"/>
+        <SolidColorBrush x:Key="Danger" Color="#E81123"/>
+
+        <Style x:Key="ChromeBtn" TargetType="Button">
+            <Setter Property="Width" Value="34"/><Setter Property="Height" Value="26"/><Setter Property="Background" Value="Transparent"/><Setter Property="BorderThickness" Value="0"/><Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
+            <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Button"><Border x:Name="Bd" Background="{TemplateBinding Background}"><ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/></Border><ControlTemplate.Triggers><Trigger Property="IsMouseOver" Value="True"><Setter TargetName="Bd" Property="Background" Value="{StaticResource BgHover}"/></Trigger><Trigger Property="IsPressed" Value="True"><Setter TargetName="Bd" Property="Background" Value="{StaticResource BgPressed}"/></Trigger></ControlTemplate.Triggers></ControlTemplate></Setter.Value></Setter>
+        </Style>
+        <Style x:Key="CloseChromeBtn" TargetType="Button" BasedOn="{StaticResource ChromeBtn}"><Style.Triggers><Trigger Property="IsMouseOver" Value="True"><Setter Property="Background" Value="{StaticResource Danger}"/></Trigger></Style.Triggers></Style>
+        <Style x:Key="FieldLabel" TargetType="TextBlock"><Setter Property="Foreground" Value="{StaticResource TextSecondary}"/><Setter Property="FontSize" Value="10"/><Setter Property="FontWeight" Value="SemiBold"/></Style>
+        <Style x:Key="LdTextBox" TargetType="TextBox"><Setter Property="Height" Value="28"/><Setter Property="Background" Value="#1E1E1E"/><Setter Property="Foreground" Value="{StaticResource TextPrimary}"/><Setter Property="BorderBrush" Value="{StaticResource BorderColor}"/><Setter Property="BorderThickness" Value="1"/><Setter Property="CaretBrush" Value="{StaticResource TextPrimary}"/><Setter Property="Padding" Value="8,5"/><Setter Property="FontSize" Value="12"/></Style>
+        <Style x:Key="DialogButton" TargetType="Button"><Setter Property="Height" Value="28"/><Setter Property="MinWidth" Value="72"/><Setter Property="Padding" Value="12,0"/><Setter Property="Background" Value="#2D2D2D"/><Setter Property="Foreground" Value="{StaticResource TextPrimary}"/><Setter Property="BorderThickness" Value="0"/><Setter Property="Cursor" Value="Hand"/><Setter Property="FontSize" Value="12"/><Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Button"><Border x:Name="Bd" Background="{TemplateBinding Background}"><ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/></Border><ControlTemplate.Triggers><Trigger Property="IsMouseOver" Value="True"><Setter TargetName="Bd" Property="Background" Value="{StaticResource BgHover}"/></Trigger><Trigger Property="IsPressed" Value="True"><Setter TargetName="Bd" Property="Background" Value="{StaticResource BgPressed}"/></Trigger><Trigger Property="IsEnabled" Value="False"><Setter TargetName="Bd" Property="Opacity" Value="0.45"/></Trigger></ControlTemplate.Triggers></ControlTemplate></Setter.Value></Setter></Style>
+        <Style x:Key="PrimaryButton" TargetType="Button" BasedOn="{StaticResource DialogButton}"><Setter Property="Background" Value="{StaticResource BgActive}"/><Setter Property="FontWeight" Value="SemiBold"/></Style>
+        <Style x:Key="VsScrollBar" TargetType="{x:Type ScrollBar}"><Setter Property="Background" Value="#1E1E1E"/><Setter Property="Foreground" Value="#5A5A5A"/><Setter Property="BorderBrush" Value="#2D2D2D"/><Setter Property="SnapsToDevicePixels" Value="True"/><Setter Property="Template"><Setter.Value><ControlTemplate TargetType="{x:Type ScrollBar}"><Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="0"><Track x:Name="PART_Track" IsDirectionReversed="True"><Track.Thumb><Thumb Background="{TemplateBinding Foreground}"><Thumb.Template><ControlTemplate TargetType="{x:Type Thumb}"><Border x:Name="ThumbBd" Background="{TemplateBinding Background}" CornerRadius="4" Margin="2"/><ControlTemplate.Triggers><Trigger Property="IsMouseOver" Value="True"><Setter TargetName="ThumbBd" Property="Background" Value="#707070"/></Trigger><Trigger Property="IsDragging" Value="True"><Setter TargetName="ThumbBd" Property="Background" Value="#8A8A8A"/></Trigger></ControlTemplate.Triggers></ControlTemplate></Thumb.Template></Thumb></Track.Thumb></Track></Border></ControlTemplate></Setter.Value></Setter></Style>
+        <Style TargetType="{x:Type ScrollBar}" BasedOn="{StaticResource VsScrollBar}"/>
+        <Style x:Key="GridCellText" TargetType="TextBlock"><Setter Property="Foreground" Value="{StaticResource TextPrimary}"/><Setter Property="FontSize" Value="11"/><Setter Property="TextTrimming" Value="CharacterEllipsis"/><Setter Property="VerticalAlignment" Value="Center"/></Style>
+        <Style TargetType="DataGrid">
+            <Setter Property="Background" Value="#1E1E1E"/><Setter Property="Foreground" Value="{StaticResource TextPrimary}"/><Setter Property="BorderBrush" Value="{StaticResource BorderColor}"/><Setter Property="BorderThickness" Value="0"/><Setter Property="RowBackground" Value="#1E1E1E"/><Setter Property="AlternatingRowBackground" Value="#232323"/><Setter Property="GridLinesVisibility" Value="None"/><Setter Property="HeadersVisibility" Value="Column"/><Setter Property="CanUserAddRows" Value="False"/><Setter Property="CanUserDeleteRows" Value="False"/><Setter Property="IsReadOnly" Value="True"/><Setter Property="AutoGenerateColumns" Value="False"/>
+        </Style>
+        <Style TargetType="DataGridColumnHeader"><Setter Property="Background" Value="#252526"/><Setter Property="Foreground" Value="#858585"/><Setter Property="BorderBrush" Value="#333333"/><Setter Property="BorderThickness" Value="0,0,1,1"/><Setter Property="Padding" Value="8,5"/><Setter Property="FontSize" Value="10"/><Setter Property="FontWeight" Value="SemiBold"/></Style>
+        <Style TargetType="DataGridRow"><Setter Property="MinHeight" Value="26"/><Setter Property="BorderBrush" Value="#2D2D2D"/><Setter Property="BorderThickness" Value="0,0,0,1"/></Style>
+        <Style TargetType="DataGridCell"><Setter Property="Background" Value="Transparent"/><Setter Property="BorderThickness" Value="0"/><Setter Property="Padding" Value="8,2"/><Setter Property="Foreground" Value="{StaticResource TextPrimary}"/></Style>
+    </Window.Resources>
+
+    <Border Background="{StaticResource BgMain}" BorderBrush="{StaticResource BorderColor}" BorderThickness="1">
+        <Grid>
+            <Grid.RowDefinitions><RowDefinition Height="26"/><RowDefinition Height="*"/><RowDefinition Height="34"/></Grid.RowDefinitions>
+            <Grid Grid.Row="0" Background="{StaticResource BgTitle}" MouseLeftButtonDown="TitleBar_MouseDown">
+                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="10,0,0,0">
+                    <Path Data="M2,4 L14,4 L14,12 L2,12 Z M4,7 L7,10 L4,13 M8,13 L13,13" Stroke="#858585" StrokeThickness="1.1" Fill="Transparent" Width="14" Height="14" Stretch="Uniform" Margin="0,0,8,0"/>
+                    <TextBlock Text="Android Analysis Tools" Foreground="{StaticResource TextPrimary}" FontSize="11" VerticalAlignment="Center"/>
+                    <TextBlock x:Name="SerialText" Text="emulator-5554" Foreground="{StaticResource TextSecondary}" FontFamily="Cascadia Mono, Consolas" FontSize="10" VerticalAlignment="Center" Margin="12,0,0,0"/>
+                </StackPanel>
+                <Button Grid.Column="1" Style="{StaticResource CloseChromeBtn}" Click="Close_Click" WindowChrome.IsHitTestVisibleInChrome="True"><Path Data="M2,2 L12,12 M12,2 L2,12" Stroke="#CCCCCC" StrokeThickness="1" Width="10" Height="10" Stretch="Uniform"/></Button>
+            </Grid>
+
+            <Grid Grid.Row="1">
+                <Grid.ColumnDefinitions><ColumnDefinition Width="208"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                <Border Background="#252526" BorderBrush="#333333" BorderThickness="0,0,1,0" Padding="12">
+                    <StackPanel>
+                        <TextBlock Text="CONTROL PLANE" Style="{StaticResource FieldLabel}" Margin="0,0,0,8"/>
+                        <Button Content="Refresh Device Overview" Style="{StaticResource PrimaryButton}" Click="RefreshOverview_Click" Margin="0,0,0,8" HorizontalContentAlignment="Left"/>
+                        <Button Content="Open ADB Shell" Style="{StaticResource DialogButton}" Click="OpenShell_Click" Margin="0,0,0,8" HorizontalContentAlignment="Left"/>
+                        <Button Content="Start mitmweb :8080" Style="{StaticResource DialogButton}" Click="StartMitm_Click" Margin="0,0,0,8" HorizontalContentAlignment="Left"/>
+                        <Button Content="Take Bugreport" Style="{StaticResource DialogButton}" Click="Bugreport_Click" Margin="0,0,0,18" HorizontalContentAlignment="Left"/>
+
+                        <TextBlock Text="SELECTED PACKAGE" Style="{StaticResource FieldLabel}" Margin="0,0,0,6"/>
+                        <TextBox x:Name="PackageBox" Style="{StaticResource LdTextBox}" Text="" Margin="0,0,0,6" ToolTip="Package name, e.g. com.example.app"/>
+                        <TextBox x:Name="ActivityBox" Style="{StaticResource LdTextBox}" Text="" Margin="0,0,0,8" ToolTip="Optional activity component, e.g. .MainActivity or com.example/.MainActivity"/>
+                        <Button Content="Start Activity / Launcher" Style="{StaticResource DialogButton}" Click="StartActivity_Click" Margin="0,0,0,8" HorizontalContentAlignment="Left"/>
+                        <Button Content="Clear App Data" Style="{StaticResource DialogButton}" Click="ClearData_Click" Margin="0,0,0,8" HorizontalContentAlignment="Left"/>
+                        <Button Content="Pull APK" Style="{StaticResource DialogButton}" Click="PullApk_Click" Margin="0,0,0,18" HorizontalContentAlignment="Left"/>
+
+                        <TextBlock Text="DUMPSYS" Style="{StaticResource FieldLabel}" Margin="0,0,0,6"/>
+                        <ComboBox x:Name="DumpsysCombo" Height="28" SelectedIndex="0" Margin="0,0,0,8" Background="#1E1E1E" Foreground="#CCCCCC">
+                            <ComboBoxItem Content="activity top" Tag="activity top"/>
+                            <ComboBoxItem Content="package selected" Tag="package"/>
+                            <ComboBoxItem Content="connectivity" Tag="connectivity"/>
+                            <ComboBoxItem Content="netpolicy" Tag="netpolicy"/>
+                            <ComboBoxItem Content="battery" Tag="battery"/>
+                            <ComboBoxItem Content="window" Tag="window"/>
+                        </ComboBox>
+                        <Button Content="Run dumpsys" Style="{StaticResource DialogButton}" Click="RunDumpsys_Click" HorizontalContentAlignment="Left"/>
+                    </StackPanel>
+                </Border>
+
+                <TabControl Grid.Column="1" Background="#1E1E1E" BorderThickness="0" Foreground="{StaticResource TextPrimary}">
+                    <TabItem Header="Overview">
+                        <DataGrid x:Name="OverviewGrid" ItemsSource="{Binding ToolRows}" Margin="10">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="AREA" Binding="{Binding Category}" Width="120" ElementStyle="{StaticResource GridCellText}"/>
+                                <DataGridTextColumn Header="NAME" Binding="{Binding Name}" Width="170" ElementStyle="{StaticResource GridCellText}"/>
+                                <DataGridTextColumn Header="VALUE" Binding="{Binding Value}" Width="240" ElementStyle="{StaticResource GridCellText}"/>
+                                <DataGridTextColumn Header="DETAILS" Binding="{Binding Details}" Width="*" ElementStyle="{StaticResource GridCellText}"/>
+                                <DataGridTextColumn Header="STATUS" Binding="{Binding Status}" Width="90" ElementStyle="{StaticResource GridCellText}"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </TabItem>
+                    <TabItem Header="Packages / Processes">
+                        <Grid Margin="10">
+                            <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="8"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                                <Button Content="List User Packages" Style="{StaticResource PrimaryButton}" Click="RefreshPackages_Click" Margin="0,0,8,0"/>
+                                <Button Content="List Processes" Style="{StaticResource DialogButton}" Click="RefreshProcesses_Click"/>
+                            </StackPanel>
+                            <DataGrid x:Name="PackagesGrid" Grid.Row="1" ItemsSource="{Binding PackageRows}" SelectionChanged="PackagesGrid_SelectionChanged">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="PACKAGE" Binding="{Binding PackageName}" Width="260" ElementStyle="{StaticResource GridCellText}"/>
+                                    <DataGridTextColumn Header="APK PATH" Binding="{Binding ApkPath}" Width="*" ElementStyle="{StaticResource GridCellText}"/>
+                                    <DataGridTextColumn Header="KIND" Binding="{Binding Kind}" Width="80" ElementStyle="{StaticResource GridCellText}"/>
+                                </DataGrid.Columns>
+                            </DataGrid>
+                            <DataGrid x:Name="ProcessGrid" Grid.Row="3" ItemsSource="{Binding ProcessRows}">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="USER" Binding="{Binding User}" Width="90" ElementStyle="{StaticResource GridCellText}"/>
+                                    <DataGridTextColumn Header="PID" Binding="{Binding Pid}" Width="70" ElementStyle="{StaticResource GridCellText}"/>
+                                    <DataGridTextColumn Header="PPID" Binding="{Binding Ppid}" Width="70" ElementStyle="{StaticResource GridCellText}"/>
+                                    <DataGridTextColumn Header="NAME / CMD" Binding="{Binding Name}" Width="*" ElementStyle="{StaticResource GridCellText}"/>
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </Grid>
+                    </TabItem>
+                    <TabItem Header="Logcat">
+                        <Grid Margin="10">
+                            <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                                <TextBox x:Name="LogcatFilterBox" Width="220" Style="{StaticResource LdTextBox}" Text="" ToolTip="Contains filter for tag/message/package" Margin="0,0,8,0"/>
+                                <Button x:Name="LogcatStartButton" Content="Start Stream" Style="{StaticResource PrimaryButton}" Click="StartLogcat_Click" Margin="0,0,8,0"/>
+                                <Button Content="Stop" Style="{StaticResource DialogButton}" Click="StopLogcat_Click" Margin="0,0,8,0"/>
+                                <Button Content="Dump -d" Style="{StaticResource DialogButton}" Click="DumpLogcat_Click" Margin="0,0,8,0"/>
+                                <Button Content="Clear Device Log" Style="{StaticResource DialogButton}" Click="ClearLogcat_Click" Margin="0,0,8,0"/>
+                                <Button Content="Clear View" Style="{StaticResource DialogButton}" Click="ClearLogView_Click"/>
+                            </StackPanel>
+                            <DataGrid x:Name="LogcatGrid" Grid.Row="1" ItemsSource="{Binding LogRows}">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="TIME" Binding="{Binding Time}" Width="130" ElementStyle="{StaticResource GridCellText}"/>
+                                    <DataGridTextColumn Header="PID" Binding="{Binding Pid}" Width="60" ElementStyle="{StaticResource GridCellText}"/>
+                                    <DataGridTextColumn Header="PRI" Binding="{Binding Priority}" Width="44" ElementStyle="{StaticResource GridCellText}"/>
+                                    <DataGridTextColumn Header="TAG" Binding="{Binding Tag}" Width="170" ElementStyle="{StaticResource GridCellText}"/>
+                                    <DataGridTextColumn Header="MESSAGE" Binding="{Binding Message}" Width="*" ElementStyle="{StaticResource GridCellText}"/>
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </Grid>
+                    </TabItem>
+                    <TabItem Header="Output">
+                        <TextBox x:Name="OutputText" Margin="10" Background="#111111" Foreground="#DCDCAA" BorderBrush="#333333" BorderThickness="1" FontFamily="Cascadia Mono, Consolas" FontSize="11" TextWrapping="NoWrap" AcceptsReturn="True" AcceptsTab="True" IsReadOnly="True" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto"/>
+                    </TabItem>
+                </TabControl>
+            </Grid>
+
+            <Border Grid.Row="2" Background="#252526" BorderBrush="#333333" BorderThickness="0,1,0,0" Padding="10,0">
+                <TextBlock x:Name="StatusText" Text="Ready" Foreground="{StaticResource TextSecondary}" FontSize="11" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+            </Border>
+        </Grid>
+    </Border>
+</Window>

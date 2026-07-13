@@ -1,0 +1,25 @@
+{
+  "schema": 1,
+  "id": "pixel5-api34",
+  "brand": "google",
+  "manufacturer": "Google",
+  "model": "Pixel 5",
+  "device": "redfin",
+  "product": "redfin",
+  "board": "redfin",
+  "socManufacturer": "Qualcomm",
+  "socModel": "SM7250",
+  "boardPlatform": "lito",
+  "buildId": "UQ1A.240205.002",
+  "incremental": "11224170",
+  "fingerprint": "google/redfin/redfin:14/UQ1A.240205.002/11224170:user/release-keys",
+  "description": "redfin-user 14 UQ1A.240205.002 11224170 release-keys",
+  "firstApiLevel": "30",
+  "characteristics": "nosdcard",
+  "advertiseArm64First": false,
+  "graphics": {
+    "vendor": "Qualcomm",
+    "renderer": "Adreno (TM) 620",
+    "version": "OpenGL ES 3.1 V@0502.0"
+  }
+}

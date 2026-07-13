@@ -1,0 +1,26 @@
+{
+  "schema": 1,
+  "id": "replayer-api34",
+  "brand": "replayer",
+  "manufacturer": "REPlayer",
+  "model": "REPlayer Virtual Device",
+  "device": "replayer_x86_64",
+  "product": "replayer_x86_64",
+  "board": "replayer",
+  "socManufacturer": "REPlayer",
+  "socModel": "Virtual SoC",
+  "boardPlatform": "goldfish",
+  "buildId": "REPLAYER.14.1",
+  "incremental": "140100",
+  "fingerprint": "replayer/replayer_x86_64/replayer_x86_64:14/REPLAYER.14.1/140100:user/release-keys",
+  "description": "replayer_x86_64-user 14 REPLAYER.14.1 140100 release-keys",
+  "firstApiLevel": "34",
+  "characteristics": "nosdcard",
+  "advertiseArm64First": false,
+  "graphics": {
+    "vendor": "REPlayer",
+    "renderer": "REPlayer Virtual GPU",
+    "compiledRenderer": "REPlayer Virtual GPU (OpenGL ES 3.1 1.0",
+    "version": "OpenGL ES 3.1"
+  }
+}

@@ -1,0 +1,11 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.replayer.settings.overlay"
+    android:versionCode="1"
+    android:versionName="1.0">
+    <uses-sdk android:minSdkVersion="34" android:targetSdkVersion="34" />
+    <overlay
+        android:targetPackage="com.android.settings"
+        android:isStatic="true"
+        android:priority="999" />
+    <application android:hasCode="false" android:label="REPlayer Settings Identity Overlay" />
+</manifest>

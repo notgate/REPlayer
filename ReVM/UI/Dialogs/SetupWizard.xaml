@@ -1,0 +1,290 @@
+<Window x:Class="ReVM.SetupWizard"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="REPlayer Setup" Height="460" Width="760"
+        WindowStyle="None" ResizeMode="NoResize"
+        Background="#040609"
+        WindowStartupLocation="CenterScreen">
+
+    <WindowChrome.WindowChrome>
+        <WindowChrome CaptionHeight="32" ResizeBorderThickness="0"
+                      GlassFrameThickness="0" CornerRadius="0"/>
+    </WindowChrome.WindowChrome>
+
+    <Window.Resources>
+        <Style x:Key="SetupButton" TargetType="Button">
+            <Setter Property="Height" Value="26"/>
+            <Setter Property="MinWidth" Value="82"/>
+            <Setter Property="Padding" Value="14,0"/>
+            <Setter Property="Background" Value="#252526"/>
+            <Setter Property="Foreground" Value="#D4D4D4"/>
+            <Setter Property="BorderBrush" Value="#3C3C3C"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="FontFamily" Value="Segoe UI"/>
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="6">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="Bd" Property="Background" Value="#2D2D2D"/><Setter Property="Foreground" Value="#FFFFFF"/></Trigger>
+                            <Trigger Property="IsPressed" Value="True"><Setter TargetName="Bd" Property="Background" Value="#1E1E1E"/></Trigger>
+                            <Trigger Property="IsEnabled" Value="False"><Setter Property="Opacity" Value="0.45"/><Setter Property="Cursor" Value="Arrow"/></Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <Grid x:Name="SetupRoot" ClipToBounds="True" Background="#040609">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="32"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <Rectangle x:Name="EntranceRevealPanel"
+                   Grid.RowSpan="2"
+                   Fill="#070A0F"
+                   Panel.ZIndex="0"
+                   RenderTransformOrigin="0.5,0.5">
+            <Rectangle.RenderTransform>
+                <ScaleTransform x:Name="EntranceRevealScale" ScaleX="0.015" ScaleY="0.015"/>
+            </Rectangle.RenderTransform>
+        </Rectangle>
+
+        <Grid x:Name="SetupTitleBar"
+              Grid.Row="0"
+              Background="#080B10"
+              Opacity="0"
+              Panel.ZIndex="1"
+              MouseLeftButtonDown="TitleBar_MouseDown">
+            <Grid.RenderTransform>
+                <TranslateTransform x:Name="SetupTitleBarTranslate" Y="-18"/>
+            </Grid.RenderTransform>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <Button Grid.Column="1" x:Name="TitleCloseButton" Width="38" Height="32" Background="Transparent" BorderThickness="0" Foreground="#C8C8C8" Click="Cancel_Click" WindowChrome.IsHitTestVisibleInChrome="True">
+                <Path Data="M2,2 L12,12 M12,2 L2,12" Stroke="#C8C8C8" StrokeThickness="1.1" Width="10" Height="10" Stretch="Uniform"/>
+            </Button>
+        </Grid>
+
+        <Grid x:Name="SetupBody" Grid.Row="1" ClipToBounds="True" Opacity="0" Panel.ZIndex="1">
+            <Grid.RenderTransform>
+                <TranslateTransform x:Name="SetupBodyTranslate" Y="16"/>
+            </Grid.RenderTransform>
+
+            <Image Source="/Assets/Setup/monochrome-research.jpg" Stretch="UniformToFill" Opacity="0.22"/>
+            <Rectangle Fill="#E6040609"/>
+            <Rectangle>
+                <Rectangle.Fill>
+                    <RadialGradientBrush Center="0.5,0.44" GradientOrigin="0.5,0.44" RadiusX="0.74" RadiusY="0.74">
+                        <GradientStop Color="#140F1722" Offset="0"/>
+                        <GradientStop Color="#F2040609" Offset="1"/>
+                    </RadialGradientBrush>
+                </Rectangle.Fill>
+            </Rectangle>
+
+            <Rectangle Opacity="0.62" IsHitTestVisible="False">
+                <Rectangle.Fill>
+                    <RadialGradientBrush Center="0.5,0.43" GradientOrigin="0.5,0.43" RadiusX="0.58" RadiusY="0.66">
+                        <GradientStop Color="#263F789A" Offset="0"/>
+                        <GradientStop Color="#12223E55" Offset="0.42"/>
+                        <GradientStop Color="#00040609" Offset="1"/>
+                    </RadialGradientBrush>
+                </Rectangle.Fill>
+            </Rectangle>
+
+            <Canvas x:Name="ShootingStarField" Width="760" Height="330" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False" ClipToBounds="True">
+                <Border Canvas.Left="760" Canvas.Top="40" Width="92" Height="1.2" Opacity="0" RenderTransformOrigin="0.5,0.5">
+                    <Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="1,0"><GradientStop Color="#00DDF3FF" Offset="0"/><GradientStop Color="#A8E8FAFF" Offset="0.72"/><GradientStop Color="#F8FFFFFF" Offset="1"/></LinearGradientBrush></Border.Background>
+                    <Border.Effect><DropShadowEffect Color="#BDEFFF" BlurRadius="7" ShadowDepth="0" Opacity="0.55"/></Border.Effect>
+                    <Border.RenderTransform><RotateTransform Angle="-17"/></Border.RenderTransform>
+                    <Border.Triggers><EventTrigger RoutedEvent="FrameworkElement.Loaded"><BeginStoryboard><Storyboard BeginTime="0:0:0.9" RepeatBehavior="Forever">
+                        <DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="Opacity" Duration="0:0:5.8"><DiscreteDoubleKeyFrame KeyTime="0:0:0" Value="0"/><SplineDoubleKeyFrame KeyTime="0:0:0.25" Value="0.62"/><SplineDoubleKeyFrame KeyTime="0:0:1.35" Value="0"/><DiscreteDoubleKeyFrame KeyTime="0:0:5.8" Value="0"/></DoubleAnimationUsingKeyFrames>
+                        <DoubleAnimation Storyboard.TargetProperty="(Canvas.Left)" From="760" To="-130" Duration="0:0:1.45"/>
+                        <DoubleAnimation Storyboard.TargetProperty="(Canvas.Top)" From="40" To="290" Duration="0:0:1.45"/>
+                    </Storyboard></BeginStoryboard></EventTrigger></Border.Triggers>
+                </Border>
+                <Border Canvas.Left="760" Canvas.Top="112" Width="58" Height="1" Opacity="0" RenderTransformOrigin="0.5,0.5">
+                    <Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="1,0"><GradientStop Color="#00C7E8FF" Offset="0"/><GradientStop Color="#90DDF4FF" Offset="0.76"/><GradientStop Color="#EFFFFFFF" Offset="1"/></LinearGradientBrush></Border.Background>
+                    <Border.Effect><DropShadowEffect Color="#9DDEFF" BlurRadius="5" ShadowDepth="0" Opacity="0.42"/></Border.Effect>
+                    <Border.RenderTransform><RotateTransform Angle="-13"/></Border.RenderTransform>
+                    <Border.Triggers><EventTrigger RoutedEvent="FrameworkElement.Loaded"><BeginStoryboard><Storyboard BeginTime="0:0:3.4" RepeatBehavior="Forever">
+                        <DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="Opacity" Duration="0:0:7.1"><DiscreteDoubleKeyFrame KeyTime="0:0:0" Value="0"/><SplineDoubleKeyFrame KeyTime="0:0:0.18" Value="0.44"/><SplineDoubleKeyFrame KeyTime="0:0:1.05" Value="0"/><DiscreteDoubleKeyFrame KeyTime="0:0:7.1" Value="0"/></DoubleAnimationUsingKeyFrames>
+                        <DoubleAnimation Storyboard.TargetProperty="(Canvas.Left)" From="760" To="-100" Duration="0:0:1.2"/>
+                        <DoubleAnimation Storyboard.TargetProperty="(Canvas.Top)" From="112" To="304" Duration="0:0:1.2"/>
+                    </Storyboard></BeginStoryboard></EventTrigger></Border.Triggers>
+                </Border>
+                <Border Canvas.Left="760" Canvas.Top="8" Width="72" Height="1" Opacity="0" RenderTransformOrigin="0.5,0.5">
+                    <Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="1,0"><GradientStop Color="#00D5EEFF" Offset="0"/><GradientStop Color="#82E4F7FF" Offset="0.75"/><GradientStop Color="#E8FFFFFF" Offset="1"/></LinearGradientBrush></Border.Background>
+                    <Border.RenderTransform><RotateTransform Angle="-10"/></Border.RenderTransform>
+                    <Border.Triggers><EventTrigger RoutedEvent="FrameworkElement.Loaded"><BeginStoryboard><Storyboard BeginTime="0:0:5.7" RepeatBehavior="Forever">
+                        <DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="Opacity" Duration="0:0:8.4"><DiscreteDoubleKeyFrame KeyTime="0:0:0" Value="0"/><SplineDoubleKeyFrame KeyTime="0:0:0.2" Value="0.36"/><SplineDoubleKeyFrame KeyTime="0:0:1.2" Value="0"/><DiscreteDoubleKeyFrame KeyTime="0:0:8.4" Value="0"/></DoubleAnimationUsingKeyFrames>
+                        <DoubleAnimation Storyboard.TargetProperty="(Canvas.Left)" From="760" To="-120" Duration="0:0:1.35"/>
+                        <DoubleAnimation Storyboard.TargetProperty="(Canvas.Top)" From="8" To="175" Duration="0:0:1.35"/>
+                    </Storyboard></BeginStoryboard></EventTrigger></Border.Triggers>
+                </Border>
+            </Canvas>
+
+            <Canvas x:Name="SetupStarField" Width="760" Height="330" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False">
+                <Ellipse Canvas.Left="68" Canvas.Top="54" Width="2" Height="2" Fill="#B9D7F5" Opacity="0.36"/>
+                <Ellipse Canvas.Left="142" Canvas.Top="232" Width="1.5" Height="1.5" Fill="#FFFFFF" Opacity="0.42"/>
+                <Ellipse Canvas.Left="214" Canvas.Top="88" Width="1" Height="1" Fill="#DDEAFF" Opacity="0.48"/>
+                <Ellipse Canvas.Left="286" Canvas.Top="276" Width="2" Height="2" Fill="#C8DAEE" Opacity="0.28"/>
+                <Ellipse Canvas.Left="472" Canvas.Top="64" Width="1.5" Height="1.5" Fill="#FFFFFF" Opacity="0.44"/>
+                <Ellipse Canvas.Left="548" Canvas.Top="246" Width="1" Height="1" Fill="#DCEBFF" Opacity="0.5"/>
+                <Ellipse Canvas.Left="642" Canvas.Top="118" Width="2" Height="2" Fill="#B9D7F5" Opacity="0.3"/>
+                <Ellipse Canvas.Left="704" Canvas.Top="278" Width="1.5" Height="1.5" Fill="#FFFFFF" Opacity="0.4"/>
+
+                <Ellipse Canvas.Left="104" Canvas.Top="132" Width="4" Height="4" Fill="#E8F3FF" Opacity="0.16">
+                    <Ellipse.Effect><BlurEffect Radius="5"/></Ellipse.Effect>
+                    <Ellipse.RenderTransform><TranslateTransform/></Ellipse.RenderTransform>
+                    <Ellipse.Triggers><EventTrigger RoutedEvent="FrameworkElement.Loaded"><BeginStoryboard><Storyboard RepeatBehavior="Forever">
+                        <DoubleAnimation Storyboard.TargetProperty="Opacity" From="0.08" To="0.72" Duration="0:0:2.8" AutoReverse="True"/>
+                        <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.Y)" From="4" To="-9" Duration="0:0:5.6" AutoReverse="True"/>
+                    </Storyboard></BeginStoryboard></EventTrigger></Ellipse.Triggers>
+                </Ellipse>
+                <Ellipse Canvas.Left="188" Canvas.Top="34" Width="3" Height="3" Fill="#FFFFFF" Opacity="0.18">
+                    <Ellipse.Effect><BlurEffect Radius="4"/></Ellipse.Effect>
+                    <Ellipse.Triggers><EventTrigger RoutedEvent="FrameworkElement.Loaded"><BeginStoryboard><Storyboard BeginTime="0:0:0.7" RepeatBehavior="Forever">
+                        <DoubleAnimation Storyboard.TargetProperty="Opacity" From="0.12" To="0.8" Duration="0:0:2.1" AutoReverse="True"/>
+                    </Storyboard></BeginStoryboard></EventTrigger></Ellipse.Triggers>
+                </Ellipse>
+                <Ellipse Canvas.Left="274" Canvas.Top="182" Width="5" Height="5" Fill="#D9ECFF" Opacity="0.12">
+                    <Ellipse.Effect><BlurEffect Radius="7"/></Ellipse.Effect>
+                    <Ellipse.RenderTransform><TranslateTransform/></Ellipse.RenderTransform>
+                    <Ellipse.Triggers><EventTrigger RoutedEvent="FrameworkElement.Loaded"><BeginStoryboard><Storyboard BeginTime="0:0:1.2" RepeatBehavior="Forever">
+                        <DoubleAnimation Storyboard.TargetProperty="Opacity" From="0.08" To="0.58" Duration="0:0:3.4" AutoReverse="True"/>
+                        <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.X)" From="-4" To="7" Duration="0:0:6.8" AutoReverse="True"/>
+                    </Storyboard></BeginStoryboard></EventTrigger></Ellipse.Triggers>
+                </Ellipse>
+                <Ellipse Canvas.Left="500" Canvas.Top="168" Width="4" Height="4" Fill="#FFFFFF" Opacity="0.14">
+                    <Ellipse.Effect><BlurEffect Radius="6"/></Ellipse.Effect>
+                    <Ellipse.Triggers><EventTrigger RoutedEvent="FrameworkElement.Loaded"><BeginStoryboard><Storyboard BeginTime="0:0:0.3" RepeatBehavior="Forever">
+                        <DoubleAnimation Storyboard.TargetProperty="Opacity" From="0.1" To="0.68" Duration="0:0:2.6" AutoReverse="True"/>
+                    </Storyboard></BeginStoryboard></EventTrigger></Ellipse.Triggers>
+                </Ellipse>
+                <Ellipse Canvas.Left="612" Canvas.Top="42" Width="5" Height="5" Fill="#DDEEFF" Opacity="0.12">
+                    <Ellipse.Effect><BlurEffect Radius="7"/></Ellipse.Effect>
+                    <Ellipse.RenderTransform><TranslateTransform/></Ellipse.RenderTransform>
+                    <Ellipse.Triggers><EventTrigger RoutedEvent="FrameworkElement.Loaded"><BeginStoryboard><Storyboard BeginTime="0:0:1.8" RepeatBehavior="Forever">
+                        <DoubleAnimation Storyboard.TargetProperty="Opacity" From="0.08" To="0.62" Duration="0:0:3" AutoReverse="True"/>
+                        <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.Y)" From="-5" To="8" Duration="0:0:6" AutoReverse="True"/>
+                    </Storyboard></BeginStoryboard></EventTrigger></Ellipse.Triggers>
+                </Ellipse>
+                <Ellipse Canvas.Left="690" Canvas.Top="204" Width="3" Height="3" Fill="#FFFFFF" Opacity="0.16">
+                    <Ellipse.Effect><BlurEffect Radius="5"/></Ellipse.Effect>
+                    <Ellipse.Triggers><EventTrigger RoutedEvent="FrameworkElement.Loaded"><BeginStoryboard><Storyboard BeginTime="0:0:1" RepeatBehavior="Forever">
+                        <DoubleAnimation Storyboard.TargetProperty="Opacity" From="0.1" To="0.74" Duration="0:0:2.3" AutoReverse="True"/>
+                    </Storyboard></BeginStoryboard></EventTrigger></Ellipse.Triggers>
+                </Ellipse>
+            </Canvas>
+
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,0,72">
+                <Grid Width="112" Height="112" HorizontalAlignment="Center" Margin="0,0,0,12" RenderTransformOrigin="0.5,0.5">
+                    <Grid.RenderTransform><TranslateTransform x:Name="AndroidLogoTranslate" Y="2"/></Grid.RenderTransform>
+                    <Border x:Name="AndroidProgressHalo" Width="90" Height="78" CornerRadius="44" Opacity="0.16">
+                        <Border.Background><RadialGradientBrush><GradientStop Color="#A8E7FFFF" Offset="0"/><GradientStop Color="#3C77A8C8" Offset="0.34"/><GradientStop Color="#102C5168" Offset="0.68"/><GradientStop Color="#00203C4D" Offset="1"/></RadialGradientBrush></Border.Background>
+                        <Border.Effect><BlurEffect Radius="22"/></Border.Effect>
+                    </Border>
+                    <Border x:Name="AndroidLogoGlass" Width="62" Height="62" BorderBrush="#78DCEEFF" BorderThickness="1" CornerRadius="17" HorizontalAlignment="Center" VerticalAlignment="Center" Opacity="0.84">
+                        <Border.Background>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                <GradientStop Color="#70304455" Offset="0"/>
+                                <GradientStop Color="#30131B26" Offset="0.48"/>
+                                <GradientStop Color="#A0070A0F" Offset="1"/>
+                            </LinearGradientBrush>
+                        </Border.Background>
+                        <Border.Effect><DropShadowEffect Color="#91CFFF" BlurRadius="14" ShadowDepth="0" Opacity="0.32"/></Border.Effect>
+                    </Border>
+                    <Path x:Name="AndroidLogoGlowPath" Width="34" Height="34" Fill="#D6EEFF" Opacity="0.22" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"
+                          Data="F1 M18.4395 5.5586c-.675 1.1664-1.352 2.3318-2.0274 3.498-.0366-.0155-.0742-.0286-.1113-.043-1.8249-.6957-3.484-.8-4.42-.787-1.8551.0185-3.3544.4643-4.2597.8203-.084-.1494-1.7526-3.021-2.0215-3.4864a1.1451 1.1451 0 0 0-.1406-.1914c-.3312-.364-.9054-.4859-1.379-.203-.475.282-.7136.9361-.3886 1.5019 1.9466 3.3696-.0966-.2158 1.9473 3.3593.0172.031-.4946.2642-1.3926 1.0177C2.8987 12.176.452 14.772 0 18.9902h24c-.119-1.1108-.3686-2.099-.7461-3.0683-.7438-1.9118-1.8435-3.2928-2.7402-4.1836a12.1048 12.1048 0 0 0-2.1309-1.6875c.6594-1.122 1.312-2.2559 1.9649-3.3848.2077-.3615.1886-.7956-.0079-1.1191a1.1001 1.1001 0 0 0-.8515-.5332c-.5225-.0536-.9392.3128-1.0488.5449zm-.0391 8.461c.3944.5926.324 1.3306-.1563 1.6503-.4799.3197-1.188.0985-1.582-.4941-.3944-.5927-.324-1.3307.1563-1.6504.4727-.315 1.1812-.1086 1.582.4941zM7.207 13.5273c.4803.3197.5506 1.0577.1563 1.6504-.394.5926-1.1038.8138-1.584.4941-.48-.3197-.5503-1.0577-.1563-1.6504.4008-.6021 1.1087-.8106 1.584-.4941z">
+                        <Path.Effect><BlurEffect Radius="12"/></Path.Effect>
+                    </Path>
+                    <Path x:Name="AndroidSetupLogo" Width="32" Height="32" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"
+                          Data="F1 M18.4395 5.5586c-.675 1.1664-1.352 2.3318-2.0274 3.498-.0366-.0155-.0742-.0286-.1113-.043-1.8249-.6957-3.484-.8-4.42-.787-1.8551.0185-3.3544.4643-4.2597.8203-.084-.1494-1.7526-3.021-2.0215-3.4864a1.1451 1.1451 0 0 0-.1406-.1914c-.3312-.364-.9054-.4859-1.379-.203-.475.282-.7136.9361-.3886 1.5019 1.9466 3.3696-.0966-.2158 1.9473 3.3593.0172.031-.4946.2642-1.3926 1.0177C2.8987 12.176.452 14.772 0 18.9902h24c-.119-1.1108-.3686-2.099-.7461-3.0683-.7438-1.9118-1.8435-3.2928-2.7402-4.1836a12.1048 12.1048 0 0 0-2.1309-1.6875c.6594-1.122 1.312-2.2559 1.9649-3.3848.2077-.3615.1886-.7956-.0079-1.1191a1.1001 1.1001 0 0 0-.8515-.5332c-.5225-.0536-.9392.3128-1.0488.5449zm-.0391 8.461c.3944.5926.324 1.3306-.1563 1.6503-.4799.3197-1.188.0985-1.582-.4941-.3944-.5927-.324-1.3307.1563-1.6504.4727-.315 1.1812-.1086 1.582.4941zM7.207 13.5273c.4803.3197.5506 1.0577.1563 1.6504-.394.5926-1.1038.8138-1.584.4941-.48-.3197-.5503-1.0577-.1563-1.6504.4008-.6021 1.1087-.8106 1.584-.4941z">
+                        <Path.Fill><LinearGradientBrush StartPoint="0,0" EndPoint="0.85,1"><GradientStop Color="#FFFFFF" Offset="0"/><GradientStop Color="#DDEAF4" Offset="0.46"/><GradientStop Color="#8FAFC6" Offset="1"/></LinearGradientBrush></Path.Fill>
+                    </Path>
+                </Grid>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                    <TextBlock x:Name="SetupHeadlineText" Text="Preparing REPlayer" Foreground="#F2F2F2" FontFamily="Segoe UI Semibold, Segoe UI" FontSize="28" FontWeight="SemiBold"/>
+                    <TextBlock x:Name="TypewriterCursor" Text="|" Foreground="#AFAFAF" FontFamily="Cascadia Mono, Consolas" FontSize="25" Margin="3,0,0,0">
+                        <TextBlock.Triggers>
+                            <EventTrigger RoutedEvent="FrameworkElement.Loaded">
+                                <BeginStoryboard>
+                                    <Storyboard RepeatBehavior="Forever">
+                                        <DoubleAnimation Storyboard.TargetProperty="Opacity" From="1" To="0.18" Duration="0:0:0.55" AutoReverse="True"/>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </EventTrigger>
+                        </TextBlock.Triggers>
+                    </TextBlock>
+                </StackPanel>
+                <TextBlock x:Name="SetupSubtitleText" Text="Getting everything ready" Foreground="#B6B6B7" FontSize="12" HorizontalAlignment="Center" Margin="0,8,0,0"/>
+                <TextBlock x:Name="SetupHelperText" Text="This usually takes a moment." Foreground="#777777" FontSize="10" HorizontalAlignment="Center" Margin="0,20,0,0"/>
+            </StackPanel>
+
+            <TextBlock x:Name="SetupStatusText" Visibility="Collapsed" Text="Preparing Android runtime"/>
+
+            <Border x:Name="DebugDetailsPanel" VerticalAlignment="Bottom" Height="174" Margin="14,0,14,72"
+                    Visibility="Collapsed" Background="#FA0A0D11" BorderBrush="#343A40" BorderThickness="1"
+                    CornerRadius="6" Panel.ZIndex="20">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="32"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <Grid Grid.Row="0" Background="#15181C">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="Live boot diagnostics" Foreground="#CCCCCC" FontSize="11" FontWeight="SemiBold"
+                                   VerticalAlignment="Center" Margin="10,0"/>
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="0,3,4,3">
+                            <Button Content="Copy" Style="{StaticResource SetupButton}" Height="24" MinWidth="54" Padding="10,0" Click="CopyDebug_Click"/>
+                            <Button Content="Open log" Style="{StaticResource SetupButton}" Height="24" MinWidth="68" Padding="10,0" Margin="4,0,0,0" Click="OpenLog_Click"/>
+                        </StackPanel>
+                    </Grid>
+                    <TextBox x:Name="SetupDebugText" Grid.Row="1" IsReadOnly="True" AcceptsReturn="True" AcceptsTab="False"
+                             TextWrapping="NoWrap" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto"
+                             Background="#090B0E" Foreground="#B8B8B8" BorderThickness="0" Padding="9,7"
+                             FontFamily="Cascadia Mono, Consolas" FontSize="10"/>
+                </Grid>
+            </Border>
+
+            <Grid VerticalAlignment="Bottom" Height="72" Background="#E9080C12">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="26"/>
+                    <RowDefinition Height="46"/>
+                </Grid.RowDefinitions>
+                <Canvas x:Name="SetupProgressCanvas" Grid.Row="0" Height="26" ClipToBounds="False">
+                    <Border x:Name="SetupProgressTrack" Height="2" Canvas.Top="15" Background="#24384A" Width="1" CornerRadius="1"/>
+                    <Border x:Name="SetupProgressFill" Height="2" Canvas.Top="15" Width="0" CornerRadius="1">
+                        <Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="1,0"><GradientStop Color="#6E9DBA"/><GradientStop Color="#D9F4FF" Offset="1"/></LinearGradientBrush></Border.Background>
+                        <Border.Effect><DropShadowEffect Color="#8DDCFF" BlurRadius="7" ShadowDepth="0" Opacity="0.65"/></Border.Effect>
+                    </Border>
+                    <Border x:Name="SetupProgressPercentPill" Canvas.Top="3" Width="38" Height="18" Background="#B0182733" BorderBrush="#6FAAC4D8" BorderThickness="1" CornerRadius="6">
+                        <Border.Effect><DropShadowEffect Color="#6EC9F0" BlurRadius="8" ShadowDepth="0" Opacity="0.38"/></Border.Effect>
+                        <TextBlock x:Name="SetupProgressPercent" Text="0%" Foreground="#EAF9FF" FontFamily="Cascadia Mono, Consolas" FontSize="9" HorizontalAlignment="Center" VerticalAlignment="Center" FontWeight="SemiBold"/>
+                    </Border>
+                </Canvas>
+                <Grid Grid.Row="1" Margin="14,0">
+                    <TextBlock x:Name="SetupProgressLabel" Visibility="Collapsed" Text="Starting up"/>
+                    <Button x:Name="BtnDebugDetails" Content="Debug details" Style="{StaticResource SetupButton}"
+                            HorizontalAlignment="Left" VerticalAlignment="Center" MinWidth="92" Click="DebugDetails_Click"/>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                        <Button x:Name="BtnCancel" Content="Cancel" Style="{StaticResource SetupButton}" Click="Cancel_Click" Background="#080A0B"/>
+                        <Button x:Name="BtnFinish" Content="Finish" Style="{StaticResource SetupButton}" Margin="8,0,0,0" Visibility="Collapsed" Click="Finish_Click"/>
+                    </StackPanel>
+                </Grid>
+            </Grid>
+        </Grid>
+    </Grid>
+</Window>

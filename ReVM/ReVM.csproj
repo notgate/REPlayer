@@ -1,0 +1,39 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net9.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <Nullable>enable</Nullable>
+    <AssemblyName>REPlayer</AssemblyName>
+    <Version>1.0.0</Version>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Native REPlayer runtime is the default backend. LDPlayer remains as an
+         opt-in compatibility bridge; Hyper-V/vmconnect and QEMU are retained
+         only as reference code while REPlayer moves to a headless VM + native
+         render pipeline model. -->
+    <Compile Remove="Runtime\Legacy\HyperVService.cs" />
+    <Compile Remove="Runtime\Legacy\HyperVRdpService.cs" />
+    <Compile Remove="Runtime\Legacy\QemuService.cs" />
+    <Compile Remove="UI\Dialogs\FridaDialog.xaml.cs" />
+    <Compile Remove="UI\Dialogs\MitmproxyDialog.xaml.cs" />
+    <Compile Remove="UI\Dialogs\AndroidToolsDialog.xaml.cs" />
+    <Page Remove="UI\Dialogs\FridaDialog.xaml" />
+    <Page Remove="UI\Dialogs\MitmproxyDialog.xaml" />
+    <Page Remove="UI\Dialogs\AndroidToolsDialog.xaml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\runtime-src\RevmRenderHost\RevmRenderHost.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Assets\Setup\monochrome-research.jpg" />
+    <Content Include="..\android-tools\replayer-customizer\baseline-disabled-packages.txt"
+             Link="Assets\Android\baseline-disabled-packages.txt"
+             CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,182 @@
+<Window x:Class="ReVM.GpsSpoofDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="GPS Spoofing" Height="251" Width="400" WindowStyle="None" ResizeMode="NoResize" AllowsTransparency="True" Background="Transparent" FontFamily="Segoe UI" TextOptions.TextFormattingMode="Display" WindowStartupLocation="CenterOwner">
+    <WindowChrome.WindowChrome>
+        <WindowChrome CaptionHeight="26" ResizeBorderThickness="4" GlassFrameThickness="0" CornerRadius="0"/>
+    </WindowChrome.WindowChrome>
+    <Window.Resources>
+        <SolidColorBrush x:Key="BgMain" Color="#1E1E1E"/>
+        <SolidColorBrush x:Key="BgPanel" Color="#252526"/>
+        <SolidColorBrush x:Key="BgTitle" Color="#323233"/>
+        <SolidColorBrush x:Key="BgHover" Color="#3E3E3E"/>
+        <SolidColorBrush x:Key="BorderColor" Color="#3E3E3E"/>
+        <Style x:Key="WinBtn" TargetType="Button">
+            <Setter Property="Width" Value="34"/>
+            <Setter Property="Height" Value="26"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="#CCCCCC"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd" Background="{TemplateBinding Background}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#3E3E3E"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="CloseBtn" TargetType="Button" BasedOn="{StaticResource WinBtn}">
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#E81123"/>
+                    <Setter Property="Foreground" Value="White"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+        <Style x:Key="FieldLabel" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="#858585"/>
+            <Setter Property="FontSize" Value="10"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+        </Style>
+        <Style x:Key="DialogTextBox" TargetType="TextBox">
+            <Setter Property="Height" Value="26"/>
+            <Setter Property="Background" Value="#29292E"/>
+            <Setter Property="Foreground" Value="#CCCCCC"/>
+            <Setter Property="BorderBrush" Value="#3E3E3E"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CaretBrush" Value="#CCCCCC"/>
+            <Setter Property="Padding" Value="10,3,10,3"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+        </Style>
+        <Style x:Key="DialogButton" TargetType="Button">
+            <Setter Property="Height" Value="28"/>
+            <Setter Property="MinWidth" Value="80"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Background" Value="#2D2D2D"/>
+            <Setter Property="Foreground" Value="#CCCCCC"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd" Background="{TemplateBinding Background}">
+                            <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}" Margin="0,-1,0,0"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#3E3E3E"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#252526"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="PrimaryButton" TargetType="Button" BasedOn="{StaticResource DialogButton}">
+            <Setter Property="Background" Value="#37373D"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+        </Style>
+        <Style x:Key="SliderRepeat" TargetType="RepeatButton">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RepeatButton">
+                        <Border Background="Transparent"/>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="SliderThumb" TargetType="Thumb">
+            <Setter Property="Width" Value="12"/>
+            <Setter Property="Height" Value="12"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Thumb">
+                        <Border x:Name="ThumbBd" Width="12" Height="12" Background="#CCCCCC" BorderBrush="#1E1E1E" BorderThickness="1"/>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="ThumbBd" Property="Background" Value="White"/>
+                            </Trigger>
+                            <Trigger Property="IsDragging" Value="True">
+                                <Setter TargetName="ThumbBd" Property="Background" Value="White"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style TargetType="Slider">
+            <Setter Property="Height" Value="22"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Slider">
+                        <Grid Height="22" VerticalAlignment="Center">
+                            <Border Height="3" Background="#252526" BorderBrush="#3E3E3E" BorderThickness="1" VerticalAlignment="Center"/>
+                            <Track x:Name="PART_Track" VerticalAlignment="Center">
+                                <Track.DecreaseRepeatButton>
+                                    <RepeatButton Style="{StaticResource SliderRepeat}" Command="Slider.DecreaseLarge"/>
+                                </Track.DecreaseRepeatButton>
+                                <Track.Thumb>
+                                    <Thumb Style="{StaticResource SliderThumb}"/>
+                                </Track.Thumb>
+                                <Track.IncreaseRepeatButton>
+                                    <RepeatButton Style="{StaticResource SliderRepeat}" Command="Slider.IncreaseLarge"/>
+                                </Track.IncreaseRepeatButton>
+                            </Track>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+
+    <Border Background="{StaticResource BgMain}" BorderBrush="{StaticResource BorderColor}" BorderThickness="1">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="26"/>
+                <RowDefinition/>
+                <RowDefinition Height="55"/>
+            </Grid.RowDefinitions>
+            <Grid Grid.Row="0" Background="{StaticResource BgTitle}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="10,0,0,0">
+                    <Path Data="M8,2 A6,6 0 1,0 8,14 A6,6 0 1,0 8,2 Z M8,5 A3,3 0 1,1 8,11 A3,3 0 1,1 8,5 Z" Stroke="#858585" StrokeThickness="1.1" Width="13" Height="13" Stretch="Uniform" Margin="0,0,8,0"/>
+                    <TextBlock Text="Spoof GPS" Foreground="#CCCCCC" FontSize="11" VerticalAlignment="Center"/>
+                </StackPanel>
+                <Button Grid.Column="1" Style="{StaticResource CloseBtn}" Click="Close_Click" WindowChrome.IsHitTestVisibleInChrome="True">
+                    <Path Data="M2,2 L12,12 M12,2 L2,12" Stroke="#CCCCCC" StrokeThickness="1" Width="10" Height="10" Stretch="Uniform"/>
+                </Button>
+            </Grid>
+            <StackPanel Grid.Row="1" Margin="24,20,24,0">
+                <TextBlock Text="LOCATION" Style="{StaticResource FieldLabel}" Margin="0,0,0,8"/>
+                <TextBlock Text="Latitude" Foreground="#858585" FontSize="11" Margin="0,0,0,4"/>
+                <TextBox x:Name="LatBox" Text="37.7749" Style="{StaticResource DialogTextBox}" Margin="0,0,0,14"/>
+                <TextBlock Text="Longitude" Foreground="#858585" FontSize="11" Margin="0,0,0,4"/>
+                <TextBox x:Name="LonBox" Text="-122.4194" Style="{StaticResource DialogTextBox}" Margin="0,0,0,14"/>
+                <TextBlock x:Name="ResultText" Text="" Foreground="#CCCCCC" FontSize="11" TextWrapping="Wrap"/>
+            </StackPanel>
+            <Border Grid.Row="2" Background="{StaticResource BgPanel}" BorderBrush="{StaticResource BorderColor}" BorderThickness="0,1,0,0" Padding="16,14">
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Height="27" VerticalAlignment="Center">
+                    <Button Content="Set Location" Click="Set_Click" Width="110" Style="{StaticResource PrimaryButton}" Margin="0,0,8,0"/>
+                    <Button Content="Reset" Click="Reset_Click" Width="80" Style="{StaticResource DialogButton}"/>
+                </StackPanel>
+            </Border>
+        </Grid>
+    </Border>
+</Window>

@@ -1,0 +1,35 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.replayer.utility">
+    <uses-sdk android:minSdkVersion="24" android:targetSdkVersion="30" />
+    <uses-permission android:name="android.permission.SET_WALLPAPER" />
+    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" />
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.LAUNCHER" />
+        </intent>
+    </queries>
+    <application
+        android:allowBackup="false"
+        android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher"
+        android:label="REPlayer Tools"
+        android:supportsRtl="true"
+        android:theme="@android:style/Theme.NoDisplay">
+        <activity
+            android:name=".PackageInspectorActivity"
+            android:exported="true"
+            android:label="Packages"
+            android:theme="@android:style/Theme.Material.NoActionBar">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".ProvisionActivity"
+            android:excludeFromRecents="true"
+            android:exported="true"
+            android:noHistory="true" />
+    </application>
+</manifest>

@@ -1,0 +1,8 @@
+# REPlayer final fastpipe guest bridge.
+# Uses the shell bootstrap so the image can open virtio ports before the native
+# bionic bridge is available. No ADB/display/QMP path is used.
+service revm_fastpipe_guest /system/bin/sh /revm-fastpipe-guest.sh
+    class main
+    user root
+    group root graphics system
+    seclabel u:r:init:s0
