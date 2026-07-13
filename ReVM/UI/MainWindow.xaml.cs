@@ -371,7 +371,7 @@ public partial class MainWindow : Window
             _baseImageReady = _engine.CheckEngine() && _engine.IsBaseImageReady();
             if (!_baseImageReady)
             {
-                StatusText.Text = "Setup incomplete. Run setup-google-emulator-runtime.ps1 or restart to retry.";
+                StatusText.Text = "Setup incomplete. Run setup.bat from the complete REPlayer release package.";
                 wizard.FailBoot(StatusText.Text);
                 return;
             }

@@ -54,8 +54,14 @@ public static class RevmPaths
                 var backendSettings = Path.Combine(runtimeDir, "backend-settings.json");
                 var nativeManifest = Path.Combine(runtimeDir, "revm-engine", "config", "runtime.json");
                 var projectFile = Path.Combine(dir.FullName, "ReVM", "ReVM.csproj");
+                var installedExecutable = Path.Combine(dir.FullName, "REPlayer.exe");
+                var distributionManifest = Path.Combine(dir.FullName, "replayer-distribution-manifest.json");
+                var runtimeManifest = Path.Combine(runtimeDir, "replayer-runtime-manifest.json");
 
-                if (File.Exists(backendSettings) || File.Exists(nativeManifest) || File.Exists(projectFile))
+                var installedDistribution = File.Exists(installedExecutable) &&
+                                            File.Exists(distributionManifest) &&
+                                            File.Exists(runtimeManifest);
+                if (installedDistribution || File.Exists(backendSettings) || File.Exists(nativeManifest) || File.Exists(projectFile))
                     return dir.FullName;
 
                 dir = dir.Parent;

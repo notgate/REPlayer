@@ -246,6 +246,7 @@ public sealed class GoogleEmulatorRuntimeService : IAndroidRuntimeBackend
         var emulatorOk = File.Exists(EmulatorExe);
         var adbOk = File.Exists(AdbExe);
         var imageOk = SystemImageReady;
+        var baselineOk = PublishedBaselineReady;
 
         if (emulatorOk && adbOk && imageOk && !AvdReady)
         {
@@ -262,9 +263,9 @@ public sealed class GoogleEmulatorRuntimeService : IAndroidRuntimeBackend
         }
 
         var avdOk = AvdReady;
-        var ok = emulatorOk && adbOk && imageOk && avdOk;
+        var ok = emulatorOk && adbOk && imageOk && avdOk && baselineOk;
         if (!ok)
-            Log($"CheckEngine false: emulator={emulatorOk}, adb={adbOk}, image={imageOk}, avd={avdOk}, base={_baseDir}");
+            Log($"CheckEngine false: emulator={emulatorOk}, adb={adbOk}, image={imageOk}, avd={avdOk}, publishedBaseline={baselineOk}, base={_baseDir}");
         return ok;
     }
 
@@ -276,6 +277,13 @@ public sealed class GoogleEmulatorRuntimeService : IAndroidRuntimeBackend
         {
             EnsureBootstrapLayout();
             StageManagedRuntimeFiles();
+
+            if (!PublishedBaselineReady)
+            {
+                return (false,
+                    $"The prepublished API 34 baseline is missing for {ActiveBootProfile}. " +
+                    "Run setup.bat from the complete REPlayer release package; stock SDK downloads cannot replace the published security baseline.");
+            }
 
             if (CheckEngine())
             {
@@ -307,7 +315,7 @@ public sealed class GoogleEmulatorRuntimeService : IAndroidRuntimeBackend
             Status(44, "Preparing Android signing/build tools");
             await EnsureAndroidBuildToolsAsync(ct);
 
-            Status(45, "Preparing Android 30 Google APIs x86_64 image");
+            Status(45, "Preparing Android 14 / API 34 Google APIs x86_64 image");
             if (!SystemImageReady)
             {
                 await DownloadAndExtractAsync("Android system image", ActiveSystemImageUrl,
@@ -509,7 +517,7 @@ public sealed class GoogleEmulatorRuntimeService : IAndroidRuntimeBackend
             run.WriteManifest();
             Status(12, "Cloning immutable baseline into disposable run storage");
             OfficialEmulatorBaseline.Clone(avdDir, run.RunAvdDirectory, QemuImgExe,
-                checked((long)Math.Clamp(settings.StorageGb, 8, 4096) << 30));
+                checked((long)Math.Clamp(settings.StorageGb, 8, 4096) << 30), relocateExternalBacking: true);
             WriteAvdProfile(run.RunAvdName, run.RunAvdDirectory, settings.CpuCores, settings.RamMb,
                 settings.StorageGb, settings.BootProfile, run.RunAvdHome);
 
@@ -1032,6 +1040,8 @@ public sealed class GoogleEmulatorRuntimeService : IAndroidRuntimeBackend
                                      (File.Exists(Path.Combine(ActiveSystemImageDir, "kernel-ranchu")) ||
                                       File.Exists(Path.Combine(ActiveSystemImageDir, "kernel-ranchu-64")));
     private bool AvdReady => File.Exists(Path.Combine(_avdHome, "ReVM.ini")) && File.Exists(Path.Combine(_avdDir, "config.ini"));
+    private bool PublishedBaselineReady => File.Exists(Path.Combine(
+        BaselineAvdDirectoryForProfile(ActiveBootProfile), "replayer-baseline.json"));
 
     private void EnsureBootstrapLayout()
     {

@@ -593,7 +593,8 @@ internal static class OfficialEmulatorBaseline
         public long CreationUtcTicks { get; set; }
         public string Sha256 { get; set; } = string.Empty;
     }
-    public static void Clone(string sourceDirectory, string destinationDirectory, string? qemuImgPath = null, long desiredVirtualSize = 0)
+    public static void Clone(string sourceDirectory, string destinationDirectory, string? qemuImgPath = null,
+        long desiredVirtualSize = 0, bool relocateExternalBacking = false)
     {
         if (!Directory.Exists(sourceDirectory))
             throw new DirectoryNotFoundException("Immutable AVD baseline is missing: " + sourceDirectory);
@@ -601,6 +602,57 @@ internal static class OfficialEmulatorBaseline
             Directory.Delete(destinationDirectory, recursive: true);
 
         CopyDirectory(sourceDirectory, destinationDirectory);
+        if (relocateExternalBacking)
+        {
+            if (string.IsNullOrWhiteSpace(qemuImgPath) || !File.Exists(qemuImgPath))
+                throw new FileNotFoundException("qemu-img is required to relocate disposable AVD backing files.", qemuImgPath);
+            RebaseExternalQcowBacking(qemuImgPath, sourceDirectory, destinationDirectory);
+        }
+    }
+
+    private static void RebaseExternalQcowBacking(string qemuImgPath, string sourceDirectory, string destinationDirectory)
+    {
+        foreach (var name in new[] { "system.img.qcow2", "vendor.img.qcow2" })
+        {
+            var sourceFile = Path.Combine(sourceDirectory, name);
+            var destinationFile = Path.Combine(destinationDirectory, name);
+            if (!File.Exists(sourceFile) || !File.Exists(destinationFile)) continue;
+
+            var info = RunQemuImg(qemuImgPath, 30_000, "info", "--output=json", Path.GetFullPath(sourceFile));
+            using var document = JsonDocument.Parse(info);
+            if (!document.RootElement.TryGetProperty("full-backing-filename", out var backingElement))
+                throw new InvalidDataException($"The immutable {name} does not declare a resolved backing file.");
+            var backingFile = backingElement.GetString();
+            if (string.IsNullOrWhiteSpace(backingFile) || !File.Exists(backingFile))
+                throw new FileNotFoundException($"The immutable {name} backing file is missing.", backingFile);
+
+            RunQemuImg(qemuImgPath, 30_000, "rebase", "-u", "-f", "qcow2", "-F", "raw",
+                "-b", Path.GetFullPath(backingFile), Path.GetFullPath(destinationFile));
+        }
+    }
+
+    private static string RunQemuImg(string qemuImgPath, int timeoutMs, params string[] arguments)
+    {
+        var psi = new ProcessStartInfo(qemuImgPath)
+        {
+            UseShellExecute = false,
+            CreateNoWindow = true,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            WorkingDirectory = Path.GetDirectoryName(qemuImgPath) ?? Environment.CurrentDirectory
+        };
+        foreach (var argument in arguments) psi.ArgumentList.Add(argument);
+        using var process = Process.Start(psi) ?? throw new InvalidOperationException("Could not start qemu-img for AVD relocation.");
+        var stdout = process.StandardOutput.ReadToEnd();
+        var stderr = process.StandardError.ReadToEnd();
+        if (!process.WaitForExit(timeoutMs))
+        {
+            try { process.Kill(entireProcessTree: true); } catch { }
+            throw new TimeoutException("qemu-img timed out while relocating disposable AVD backing files.");
+        }
+        if (process.ExitCode != 0)
+            throw new InvalidOperationException($"qemu-img failed while relocating disposable AVD backing files (exit {process.ExitCode}): {stderr} {stdout}".Trim());
+        return stdout;
     }
 
     private static long GetImageVirtualSize(string qemuImgPath, string imageFile)
