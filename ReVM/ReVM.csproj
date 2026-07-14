@@ -6,6 +6,7 @@
     <UseWPF>true</UseWPF>
     <Nullable>enable</Nullable>
     <AssemblyName>REPlayer</AssemblyName>
+    <ApplicationIcon>Assets\Brand\REPlayer.ico</ApplicationIcon>
     <Version>0.1.0-rc.2</Version>
     <RuntimeFrameworkVersion>9.0.17</RuntimeFrameworkVersion>
   </PropertyGroup>

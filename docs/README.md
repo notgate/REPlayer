@@ -1,4 +1,5 @@
 <div align="center">
+  <img src="media/replayer-logo.svg" width="100" alt="REPlayer logo">
   <h1>REPlayer</h1>
   <p><strong>ANDROID EMULATOR · AGENTIC AUTOMATION</strong></p>
   <p>A Windows-native Android 14 emulator for app automation, testing, instrumentation, and APK analysis.</p>
@@ -13,22 +14,20 @@
   </p>
 </div>
 
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="media/replayer-hero-dark.png">
+    <source media="(prefers-color-scheme: light)" srcset="media/replayer-hero-light.png">
+    <img src="media/replayer-hero-light.png" alt="REPlayer Android workbench connected to Agent Center" width="100%">
+  </picture>
+</p>
+
 ---
 
 ## What it is
 
 REPlayer is a native Windows Android emulator and automation platform. It is an open-source alternative to closed-source emulators such as BlueStacks, LDPlayer, and Nox, with transparent Android emulation and agentic automation as its focus.
 Its Android 14 persona is **fingerprint-hardened**: REPlayer applies numerous framework, property, graphics, Settings, and identity patches so the guest does not present the usual stock-emulator defaults. Reverse engineering is one use case; repeatable Android automation, app testing, and agent-controlled device workflows are first-class uses as well.
-
-## Preview
-
-<div align="center">
-  <img src="media/workbench.png" alt="REPlayer Android emulator main window" width="390">
-  <p><sub>Native REPlayer chrome with the embedded Android 14 guest.</sub></p>
-
-  <img src="media/agent-center.png" alt="REPlayer Agent Center running Android automation tasks" width="100%">
-  <p><sub>Provider-backed agents, queued tasks, controlled device access, and evidence.</sub></p>
-</div>
 
 ## Highlights
 
