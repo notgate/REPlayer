@@ -1,37 +1,83 @@
-# REPlayer
+<div align="center">
+  <h1>REPLAYER</h1>
+  <p><strong>WINDOWS-NATIVE ANDROID RESEARCH WORKBENCH</strong></p>
+  <p>Emulation, inspection, instrumentation, and evidence in one controlled desktop environment.</p>
 
-REPlayer is a Windows WPF Android analysis workbench. Its production runtime uses Google's official Android Emulator with WHPX acceleration, a maintained Android 14/API 34 analysis image, and a native embedded emulator window.
+  <p>
+    <a href="https://github.com/notgate/REPlayer/actions/workflows/build.yml"><img alt="Build" src="https://github.com/notgate/REPlayer/actions/workflows/build.yml/badge.svg?branch=main"></a>
+    <img alt="Platform: Windows 11" src="https://img.shields.io/badge/PLATFORM-WINDOWS_11-3C3C3C?style=for-the-badge&labelColor=1E1E1E&color=3C3C3C">
+    <img alt="Runtime: Android 14" src="https://img.shields.io/badge/RUNTIME-ANDROID_14-3C3C3C?style=for-the-badge&labelColor=1E1E1E&color=3C3C3C">
+    <img alt="Desktop: .NET 9" src="https://img.shields.io/badge/DESKTOP-.NET_9-3C3C3C?style=for-the-badge&labelColor=1E1E1E&color=3C3C3C">
+    <img alt="Stage: Private Preview" src="https://img.shields.io/badge/STAGE-PRIVATE_PREVIEW-3C3C3C?style=for-the-badge&labelColor=1E1E1E&color=3C3C3C">
+  </p>
+</div>
 
-The repository contains source and reproducible build/publishing tools. Downloaded SDKs, AVD disks, signing keys, logs, captures, and test evidence are intentionally excluded from Git.
+---
 
-## End-user setup
+<div align="center">
+  <h2>• OVERVIEW •</h2>
+</div>
 
-The complete Windows release is self-contained. End users need only:
+<details open>
+  <summary><strong>What REPlayer is</strong></summary>
 
-- 64-bit Windows 11 with Intel VT-x or AMD-V enabled in firmware;
-- the **Windows Hypervisor Platform** optional feature enabled;
-- enough free NTFS storage for the published Android runtime and disposable case data.
+REPlayer is a WPF Android analysis and reverse-engineering workbench built around Google's official Android Emulator, WHPX acceleration, a maintained Android 14/API 34 guest, and a native embedded display. It unifies APK workflows, ADB, Frida, network capture, case evidence, and provider-backed analysis agents without using scrcpy as the product display.
 
-Extract the complete release archive, then run:
+</details>
+
+<details>
+  <summary><strong>Current development stage</strong></summary>
+
+- The repository is private while architecture, containment, and release behavior are still changing.
+- CI artifacts contain the self-contained Windows application build.
+- Tagged builds create draft GitHub Releases for review before publication.
+- Complete emulator-runtime distributions are assembled only from a trusted, hash-marked API 34 baseline.
+
+</details>
+
+<details>
+  <summary><strong>Notable capabilities</strong></summary>
+
+- Native WPF workbench with an embedded official emulator/gfxstream display.
+- Concurrent analysis agents with parallel observation and serialized same-device control.
+- APK installation, ADB operations, Frida workflows, network capture, and case-scoped evidence.
+- Neutral REPlayer Android persona with explicit release and resizable analysis lanes.
+- Per-user, non-admin setup with SHA-256 verification and relocatable AVD descriptors.
+
+</details>
+
+<details>
+  <summary><strong>End-user requirements and setup</strong></summary>
+
+The complete Windows distribution requires 64-bit Windows 11, Intel VT-x or AMD-V enabled in firmware, the **Windows Hypervisor Platform** optional feature, and enough NTFS storage for the runtime and disposable case data.
+
+Extract the complete distribution and run:
 
 ```bat
 setup.bat
 ```
 
-Setup installs REPlayer per-user under `%LOCALAPPDATA%\REPlayer`, verifies every
-application/runtime file against the release SHA-256 manifests, repairs the
-relocatable AVD descriptors, adds a Start Menu shortcut, and launches REPlayer.
-It does not require administrator privileges, a separately installed .NET
-runtime, Visual Studio, Python, WSL, QEMU, Android-x86, Frida, or mitmproxy.
+Setup installs REPlayer under `%LOCALAPPDATA%\REPlayer`, verifies application and runtime manifests, repairs relocatable AVD descriptors, creates a Start Menu shortcut, and launches the workbench. Failure returns a nonzero exit code and writes `%TEMP%\REPlayer-setup.log`.
 
-After setup, launch REPlayer from the Start Menu. If setup fails, it returns
-a nonzero exit code and writes `%TEMP%\REPlayer-setup.log`;
-it never reports success after a missing dependency or incomplete payload.
+</details>
+
+<div align="center">
+  <h2>• PREVIEW •</h2>
+  <p><sub>Product captures and motion previews will be added as the private UI stabilizes.</sub></p>
+</div>
+
+| Main workbench | Agent Center |
+|:--:|:--:|
+| `docs/media/workbench.png` | `docs/media/agent-center.png` |
+| Runtime and case workflow | Evidence and diagnostics |
+| `docs/media/runtime.png` | `docs/media/evidence.png` |
+
+> Media slots are intentionally explicit rather than filled with mock screenshots. See [`docs/media/README.md`](docs/media/README.md) for the drop-in image and linked-video conventions.
 
 ## Source-build requirements
 
 - .NET 9 SDK or Visual Studio 2022 for the WPF application;
-- a prepublished, hash-marked API 34 runtime payload;
+- a prepublished, hash-marked API 34 runtime payload for complete distributions;
 - WSL only for release engineers publishing new Android baselines.
 
 ## Build
@@ -114,9 +160,22 @@ scripts/
   validation/
 ```
 
+## CI artifacts and draft releases
+
+Every push and pull request builds the complete solution, runs the deterministic concurrent-agent probe and static release validators, and publishes a self-contained `win-x64` application archive with a SHA-256 sidecar.
+
+Pushing a version tag creates a **draft** GitHub Release:
+
+```powershell
+git tag v0.1.0-preview.1
+git push origin v0.1.0-preview.1
+```
+
+The automated archive is deliberately named `REPlayer-<version>-win-x64-app.zip`: it contains the desktop application but not the private API 34 runtime baseline. Release engineers use `scripts/setup/New-REPlayerDistribution.ps1` on the trusted Windows release workstation to produce and verify the complete runtime distribution before attaching or publishing it.
+
 ## Validation
 
-See [docs/production-validation.md](docs/production-validation.md). GitHub Actions builds the complete solution on `windows-latest`; live WHPX/AVD tests run on a virtualization-enabled Windows workstation.
+See [docs/production-validation.md](docs/production-validation.md). GitHub Actions builds and packages the application on `windows-latest`; live WHPX/AVD and complete-distribution tests run on a virtualization-enabled Windows release workstation.
 
 ## Security boundary
 

@@ -1,0 +1,21 @@
+changelog:
+  exclude:
+    labels:
+      - skip-changelog
+  categories:
+    - title: Security and containment
+      labels:
+        - security
+        - containment
+    - title: Workbench and runtime
+      labels:
+        - enhancement
+        - runtime
+        - ui
+    - title: Fixes
+      labels:
+        - bug
+        - fix
+    - title: Internal changes
+      labels:
+        - "*"
