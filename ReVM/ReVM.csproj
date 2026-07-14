@@ -6,7 +6,7 @@
     <UseWPF>true</UseWPF>
     <Nullable>enable</Nullable>
     <AssemblyName>REPlayer</AssemblyName>
-    <Version>0.1.0-preview.2</Version>
+    <Version>0.1.0-rc.1</Version>
   </PropertyGroup>
 
   <ItemGroup>

@@ -124,7 +124,7 @@ jobs:
           mapfile -t assets < <(find release-assets -maxdepth 1 -type f -print | sort)
           test "${#assets[@]}" -ge 2
           release_flags=(--draft)
-          if [[ "$GITHUB_REF_NAME" == *-* ]]; then
+          if [[ "$GITHUB_REF_NAME" == *-* && ! "$GITHUB_REF_NAME" =~ -rc\.[0-9]+$ ]]; then
             release_flags+=(--prerelease)
           fi
           gh release create "$GITHUB_REF_NAME" "${assets[@]}" \
