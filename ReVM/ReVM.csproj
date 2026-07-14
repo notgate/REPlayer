@@ -39,7 +39,7 @@
              Link="LICENSE.txt"
              CopyToOutputDirectory="PreserveNewest"
              CopyToPublishDirectory="PreserveNewest" />
-    <Content Include="..\THIRD_PARTY_NOTICES.md"
+    <Content Include="..\docs\THIRD_PARTY_NOTICES.md"
              Link="THIRD_PARTY_NOTICES.md"
              CopyToOutputDirectory="PreserveNewest"
              CopyToPublishDirectory="PreserveNewest" />

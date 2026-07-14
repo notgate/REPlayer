@@ -81,10 +81,13 @@ GitHub Actions builds, validates, and packages a self-contained `win-x64` applic
 - [Agent automation](docs/agent-harness.md)
 - [Production validation](docs/production-validation.md)
 - [README media guide](docs/media/README.md)
+- [Contributing](docs/CONTRIBUTING.md)
+- [Security policy](docs/SECURITY.md)
+- [Third-party notices](docs/THIRD_PARTY_NOTICES.md)
 
 ## License
 
-REPlayer source is available under the [MIT License](LICENSE). Third-party runtimes, dependencies, services, and trademarks retain their own terms; see [third-party notices](THIRD_PARTY_NOTICES.md).
+REPlayer source is available under the [MIT License](LICENSE). Third-party runtimes, dependencies, services, and trademarks retain their own terms; see [third-party notices](docs/THIRD_PARTY_NOTICES.md).
 
 ## Scope
 

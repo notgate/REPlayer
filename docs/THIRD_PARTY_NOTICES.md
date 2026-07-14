@@ -1,6 +1,6 @@
 # Third-party notices
 
-The MIT License in [`LICENSE`](LICENSE) applies to REPlayer-authored source and original project assets unless a file states otherwise. Screenshots may depict third-party interfaces, icons, or trademarks and do not relicense those elements. The MIT grant does not relicense third-party software, services, trademarks, or runtime payloads.
+The MIT License in [`LICENSE`](../LICENSE) applies to REPlayer-authored source and original project assets unless a file states otherwise. Screenshots may depict third-party interfaces, icons, or trademarks and do not relicense those elements. The MIT grant does not relicense third-party software, services, trademarks, or runtime payloads.
 
 ## Android and Google components
 
@@ -10,7 +10,7 @@ Android is a trademark of Google LLC. Product screenshots and references identif
 
 ## Android glyph
 
-The setup UI's Android glyph is sourced from Simple Icons under CC0-1.0. Provenance and the retrieved hash are recorded in [`ReVM/Assets/Setup/ANDROID-LOGO-NOTICE.md`](ReVM/Assets/Setup/ANDROID-LOGO-NOTICE.md).
+The setup UI's Android glyph is sourced from Simple Icons under CC0-1.0. Provenance and the retrieved hash are recorded in [`ReVM/Assets/Setup/ANDROID-LOGO-NOTICE.md`](../ReVM/Assets/Setup/ANDROID-LOGO-NOTICE.md).
 
 ## Microsoft and .NET
 
