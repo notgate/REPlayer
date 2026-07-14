@@ -27,6 +27,7 @@ def main() -> int:
     providers = read("ReVM/Automation/AiAgentProviderClients.cs")
     runner = read("ReVM/Automation/AiAgentTaskRunner.cs")
     policy = read("ReVM/Automation/AdbAgentCommandPolicy.cs")
+    probe = read("runtime-src/ReplayerAutomationProbe/Program.cs")
 
     require('x:Key="AgentButton"' in center and "ControlTemplate TargetType=\"Button\"" in center,
             "AgentButton must own a deterministic button template", findings)
@@ -60,6 +61,12 @@ def main() -> int:
             "observe-only ADB command policy is incomplete", findings)
     require("ApiKey" not in models and "Password" not in models,
             "profile metadata models must not persist plaintext secrets", findings)
+    require(all(token in probe for token in ("RunQueuedAiAgentConcurrencyProbe", "queuedAiTasks", "queuedAiSameDeviceControlMaximum", "queuedAiMixedMaximum")),
+            "behavioral probe must cover queued provider-backed concurrency", findings)
+    require(all(token in probe for token in ("--live-agent-queue", "RunLiveProviderAgentQueue", "sameDeviceControlsSerialized")),
+            "live provider-backed Android queue probe is missing", findings)
+    require("ApplyHoverPreviewForVisualProbe" in probe and "ButtonBorder" in probe,
+            "hover-state render probe is missing", findings)
 
     if findings:
         print("AGENT_CENTER_VALIDATION_FAIL")

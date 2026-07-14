@@ -17,6 +17,12 @@ if (args.Length >= 1 && args[0] == "--live-openrouter")
     return;
 }
 
+if (args.Length >= 5 && args[0] == "--live-agent-queue")
+{
+    await RunLiveProviderAgentQueue(args[1], args[2], args[3], args[4]);
+    return;
+}
+
 if (args.Length >= 2 && args[0] == "--ui")
 {
     await RunAgentCenterUiProbe(args[1]);
@@ -128,6 +134,7 @@ await using (var inbox = new AndroidAgentInbox(coordinator, inboxRoot, "device-i
 }
 
 var aiProbe = await RunAiAgentTaskProbe(root, coordinator);
+var queuedAiProbe = await RunQueuedAiAgentConcurrencyProbe(root, coordinator, transport);
 
 var allResults = sameDeviceControls.Concat(observations).Concat(crossDeviceControls).Append(timeout).Append(cancelled).ToArray();
 foreach (var result in allResults)
@@ -151,6 +158,12 @@ Console.WriteLine(JsonSerializer.Serialize(new
     inboxResults = 3,
     aiTaskStatus = aiProbe.Status.ToString(),
     aiProviderTurns = aiProbe.ProviderTurns,
+    queuedAiTasks = queuedAiProbe.TaskCount,
+    queuedAiCompleted = queuedAiProbe.Completed,
+    queuedAiCancelled = queuedAiProbe.Cancelled,
+    queuedAiSameDeviceControlMaximum = queuedAiProbe.ControlMaximum,
+    queuedAiSameDeviceObserveMaximum = queuedAiProbe.ObserveMaximum,
+    queuedAiMixedMaximum = queuedAiProbe.MixedMaximum,
     evidenceRuns = allResults.Length,
     evidenceRoot = root,
 }, new JsonSerializerOptions { WriteIndented = true }));
@@ -158,6 +171,28 @@ Console.WriteLine(JsonSerializer.Serialize(new
 static void Require(bool condition, string message)
 {
     if (!condition) throw new InvalidOperationException(message);
+}
+
+static void ApplyHoverPreviewForVisualProbe(System.Windows.Controls.Button button)
+{
+    button.ApplyTemplate();
+    var trigger = button.Template.Triggers.OfType<Trigger>().SingleOrDefault(candidate =>
+        candidate.Property == UIElement.IsMouseOverProperty && Equals(candidate.Value, true))
+        ?? throw new InvalidOperationException("Agent button IsMouseOver trigger was not found.");
+    foreach (var setter in trigger.Setters.OfType<Setter>())
+    {
+        DependencyObject target = button;
+        if (!string.IsNullOrWhiteSpace(setter.TargetName))
+            target = button.Template.FindName(setter.TargetName, button) as DependencyObject
+                ?? throw new InvalidOperationException("Hover trigger target was not found: " + setter.TargetName);
+        target.SetValue(setter.Property, setter.Value);
+    }
+    var border = button.Template.FindName("ButtonBorder", button) as System.Windows.Controls.Border
+        ?? throw new InvalidOperationException("Agent button border was not found.");
+    Require(border.Background.ToString().Contains("3E3E3E", StringComparison.OrdinalIgnoreCase),
+        "Agent button hover background did not apply.");
+    Require(border.BorderBrush.ToString().Contains("666666", StringComparison.OrdinalIgnoreCase),
+        "Agent button hover border did not apply.");
 }
 
 static async Task RunLiveOpenRouterProbe(string model)
@@ -190,6 +225,110 @@ static async Task RunLiveOpenRouterProbe(string model)
         model,
         response = turn.Assistant.Content.Trim(),
         reasoningContinuityPayloadPresent = turn.Assistant.ReasoningDetails.HasValue,
+    }, new JsonSerializerOptions { WriteIndented = true }));
+}
+
+static async Task RunLiveProviderAgentQueue(string adbPath, string serial, string model, string evidenceRoot)
+{
+    var key = Environment.GetEnvironmentVariable("OPENROUTER_API_KEY");
+    if (string.IsNullOrWhiteSpace(key)) throw new InvalidOperationException("OPENROUTER_API_KEY is required.");
+    var sessionRoot = Path.Combine(Path.GetFullPath(evidenceRoot), DateTimeOffset.UtcNow.ToString("yyyyMMddTHHmmssfffZ") + "-" + Guid.NewGuid().ToString("N"));
+    Directory.CreateDirectory(sessionRoot);
+    var credentials = new ProbeCredentialStore();
+    var profileStore = new AiAgentProfileStore(Path.Combine(sessionRoot, "profiles.json"), credentials);
+    var taskStore = new AiAgentTaskStore(Path.Combine(sessionRoot, "tasks"));
+    using var providerFactory = new AiAgentProviderClientFactory();
+    await using var coordinator = new AndroidAgentCoordinator(new AdbAgentTransport(adbPath), Path.Combine(sessionRoot, "adb"), maximumConcurrentAgents: 6);
+    var runner = new AiAgentTaskRunner(coordinator, credentials, providerFactory, taskStore);
+    var definitions = new[]
+    {
+        (Id: "live-observe-model", Access: AndroidAgentAccess.Observe,
+            Arguments: new[] { "shell", "getprop", "ro.product.model" },
+            Prompt: "Inspect the Android model."),
+        (Id: "live-observe-dark", Access: AndroidAgentAccess.Observe,
+            Arguments: new[] { "shell", "settings", "get", "secure", "ui_night_mode" },
+            Prompt: "Inspect the Android dark-mode setting."),
+        (Id: "live-control-settings", Access: AndroidAgentAccess.DeviceControl,
+            Arguments: new[] { "shell", "am", "start", "-a", "android.settings.SETTINGS" },
+            Prompt: "Open Android Settings."),
+        (Id: "live-control-home", Access: AndroidAgentAccess.DeviceControl,
+            Arguments: new[] { "shell", "input", "keyevent", "KEYCODE_HOME" },
+            Prompt: "Return Android to the home screen."),
+    };
+    var profiles = definitions.ToDictionary(definition => definition.Id, definition =>
+    {
+        var profile = new AiAgentProfile
+        {
+            Id = definition.Id,
+            Name = definition.Id,
+            Provider = AiAgentProviderKind.OpenRouter,
+            Model = model,
+            BaseUrl = AgentProviderCatalog.DefaultBaseUrl(AiAgentProviderKind.OpenRouter),
+            MaximumTurns = 4,
+        };
+        profileStore.Save(profile, key);
+        return profile;
+    }, StringComparer.OrdinalIgnoreCase);
+
+    var tasks = definitions.Select(definition =>
+    {
+        var argumentJson = JsonSerializer.Serialize(definition.Arguments);
+        return runner.RunAsync(new AiAgentTaskRequest
+        {
+            TaskId = definition.Id,
+            AgentId = definition.Id,
+            DeviceSerial = serial,
+            Prompt = $"{definition.Prompt} You must call execute_adb exactly once with arguments {argumentJson}. Do not substitute another command. Then report the tool result.",
+            Access = definition.Access,
+            Timeout = TimeSpan.FromSeconds(120),
+            MaximumTurns = 4,
+        }, profiles[definition.Id]);
+    }).ToArray();
+    var results = await Task.WhenAll(tasks);
+
+    Require(results.All(result => result.Status == AiAgentTaskStatus.Completed),
+        "one or more live provider-backed agent tasks did not complete");
+    foreach (var definition in definitions)
+    {
+        var result = results.Single(result => result.TaskId == definition.Id);
+        Require(result.ToolRuns.Count == 1 && result.ToolRuns[0].Status == AndroidAgentRunStatus.Succeeded,
+            definition.Id + " did not complete exactly one live ADB tool run");
+        Require(result.ToolRuns[0].Steps.Single().Access == definition.Access,
+            definition.Id + " was not host-classified with the expected access");
+        Require(File.Exists(result.EvidencePath), definition.Id + " evidence is missing");
+    }
+    var controlCommands = results
+        .Where(result => definitions.Single(definition => definition.Id == result.TaskId).Access == AndroidAgentAccess.DeviceControl)
+        .SelectMany(result => result.ToolRuns)
+        .SelectMany(run => run.Steps)
+        .Select(step => step.Command)
+        .ToArray();
+    Require(controlCommands.Length == 2, "live provider queue did not execute both control commands");
+    Require(controlCommands[0].EndedAtUtc <= controlCommands[1].StartedAtUtc || controlCommands[1].EndedAtUtc <= controlCommands[0].StartedAtUtc,
+        "live provider-backed same-device controls overlapped");
+    var snapshots = taskStore.Load();
+    Require(snapshots.Count == definitions.Length && snapshots.All(snapshot => snapshot.Status == AiAgentTaskStatus.Completed),
+        "live provider queue did not persist four completed snapshots");
+
+    Console.WriteLine(JsonSerializer.Serialize(new
+    {
+        verdict = "PASS",
+        provider = "OpenRouter",
+        model,
+        serial,
+        queuedTasks = results.Length,
+        observeTasks = definitions.Count(definition => definition.Access == AndroidAgentAccess.Observe),
+        deviceControlTasks = definitions.Count(definition => definition.Access == AndroidAgentAccess.DeviceControl),
+        sameDeviceControlsSerialized = true,
+        tasks = results.Select(result => new
+        {
+            result.TaskId,
+            status = result.Status.ToString(),
+            toolRuns = result.ToolRuns.Count,
+            report = result.Report,
+            result.EvidencePath,
+        }).ToArray(),
+        sessionRoot,
     }, new JsonSerializerOptions { WriteIndented = true }));
 }
 
@@ -257,13 +396,23 @@ static Task RunAgentCenterUiProbe(string surface)
             var provider = new ProbeAiProviderClient();
             var providerFactory = new ProbeAiProviderFactory(provider);
             var runner = new AiAgentTaskRunner(coordinator, credentials, providerFactory, tasks);
-            Window window = surface.Trim().ToLowerInvariant() switch
+            var normalizedSurface = surface.Trim().ToLowerInvariant();
+            Window window = normalizedSurface switch
             {
                 "setup" => new AgentSetupDialog(profiles, providerFactory, profile.Id),
                 "inbox" => new AgentInboxWindow(tasks, Path.Combine(root, "devices", "emulator-5554", "inbox")),
                 "evidence" => new AgentEvidenceWindow(tasks, "task-complete"),
                 _ => new AgentCenterDialog(coordinator, runner, profiles, tasks, providerFactory, "emulator-5554", Path.Combine(root, "devices", "emulator-5554", "inbox")),
             };
+            if (normalizedSurface == "center-hover")
+            {
+                window.Loaded += (_, _) =>
+                {
+                    var button = window.FindName("OpenInboxButton") as System.Windows.Controls.Button
+                        ?? throw new InvalidOperationException("Open inbox button was not found for hover validation.");
+                    ApplyHoverPreviewForVisualProbe(button);
+                };
+            }
             window.ShowInTaskbar = true;
             var app = new System.Windows.Application { ShutdownMode = ShutdownMode.OnMainWindowClose };
             app.Run(window);
@@ -346,6 +495,115 @@ static async Task<(AiAgentTaskStatus Status, int ProviderTurns)> RunAiAgentTaskP
     return (result.Status, provider.Turns);
 }
 
+static async Task<(int TaskCount, int Completed, int Cancelled, int ControlMaximum, int ObserveMaximum, int MixedMaximum)>
+    RunQueuedAiAgentConcurrencyProbe(string root, AndroidAgentCoordinator coordinator, ProbeTransport transport)
+{
+    var queueRoot = Path.Combine(root, "ai-agent-queue");
+    var credentials = new ProbeCredentialStore();
+    var profileStore = new AiAgentProfileStore(Path.Combine(queueRoot, "profiles.json"), credentials);
+    var taskStore = new AiAgentTaskStore(Path.Combine(queueRoot, "tasks"));
+    var provider = new ConcurrentQueueAiProviderClient();
+    var runner = new AiAgentTaskRunner(coordinator, credentials, new ProbeAiProviderFactory(provider), taskStore);
+    const string CancelledAgentId = "openrouter-control-cancel";
+    var definitions = new[]
+    {
+        (Id: "openrouter-observe", Access: AndroidAgentAccess.Observe, Provider: AiAgentProviderKind.OpenRouter),
+        (Id: "openrouter-control", Access: AndroidAgentAccess.DeviceControl, Provider: AiAgentProviderKind.OpenRouter),
+        (Id: "openai-observe", Access: AndroidAgentAccess.Observe, Provider: AiAgentProviderKind.OpenAI),
+        (Id: "openai-control", Access: AndroidAgentAccess.DeviceControl, Provider: AiAgentProviderKind.OpenAI),
+        (Id: "anthropic-observe", Access: AndroidAgentAccess.Observe, Provider: AiAgentProviderKind.Anthropic),
+        (Id: "anthropic-control", Access: AndroidAgentAccess.DeviceControl, Provider: AiAgentProviderKind.Anthropic),
+        (Id: "zai-observe", Access: AndroidAgentAccess.Observe, Provider: AiAgentProviderKind.Zai),
+        (Id: "zai-control", Access: AndroidAgentAccess.DeviceControl, Provider: AiAgentProviderKind.Zai),
+        (Id: CancelledAgentId, Access: AndroidAgentAccess.DeviceControl, Provider: AiAgentProviderKind.OpenRouter),
+    };
+    var profiles = definitions.ToDictionary(definition => definition.Id, definition =>
+    {
+        var profile = new AiAgentProfile
+        {
+            Id = definition.Id,
+            Name = definition.Id,
+            Provider = definition.Provider,
+            Model = "queue-probe",
+            BaseUrl = AgentProviderCatalog.DefaultBaseUrl(definition.Provider),
+            MaximumTurns = 4,
+        };
+        profileStore.Save(profile, "queue-probe-secret-" + definition.Id);
+        return profile;
+    }, StringComparer.OrdinalIgnoreCase);
+    var cancellations = definitions.ToDictionary(
+        definition => definition.Id,
+        _ => new CancellationTokenSource(),
+        StringComparer.OrdinalIgnoreCase);
+
+    Task<AiAgentTaskResult> Start((string Id, AndroidAgentAccess Access, AiAgentProviderKind Provider) definition) => runner.RunAsync(new AiAgentTaskRequest
+    {
+        TaskId = "queue-" + definition.Id,
+        AgentId = definition.Id,
+        DeviceSerial = "device-ai-queue",
+        Prompt = definition.Access == AndroidAgentAccess.DeviceControl
+            ? "Perform a controlled Android mutation for the queue probe."
+            : "Inspect Android state in the background for the queue probe.",
+        Access = definition.Access,
+        Timeout = TimeSpan.FromSeconds(4),
+        MaximumTurns = 4,
+    }, profiles[definition.Id], cancellations[definition.Id].Token);
+
+    var pending = definitions
+        .Where(definition => definition.Id != CancelledAgentId)
+        .Select(Start)
+        .ToList();
+    var controlDeadline = DateTime.UtcNow.AddSeconds(2);
+    while (transport.ActiveFor("device-ai-queue", "control") == 0 && DateTime.UtcNow < controlDeadline)
+        await Task.Delay(5);
+    Require(transport.ActiveFor("device-ai-queue", "control") == 1,
+        "queue probe did not establish an active control task");
+    pending.Add(Start(definitions.Single(definition => definition.Id == CancelledAgentId)));
+    await Task.Delay(40);
+    cancellations[CancelledAgentId].Cancel();
+    var results = await Task.WhenAll(pending);
+    foreach (var cancellation in cancellations.Values) cancellation.Dispose();
+
+    Require(results.Count(result => result.Status == AiAgentTaskStatus.Completed) == definitions.Length - 1,
+        "queued AI tasks did not complete Observe and DeviceControl work for every provider category");
+    Require(results.Count(result => result.Status == AiAgentTaskStatus.Cancelled) == 1,
+        "queued AI control cancellation was not preserved");
+    Require(transport.MaximumFor("device-ai-queue", "control") == 1,
+        "provider-backed same-device control tasks overlapped");
+    Require(transport.MaximumFor("device-ai-queue", "observe") >= 2,
+        "provider-backed observe tasks did not execute concurrently");
+    Require(transport.MaximumTotalFor("device-ai-queue") >= 3,
+        "observe tasks did not continue in the background while device control was serialized");
+
+    foreach (var definition in definitions.Where(definition => definition.Id != CancelledAgentId))
+    {
+        var result = results.Single(result => result.TaskId == "queue-" + definition.Id);
+        Require(result.ToolRuns.Count == 1 && result.ToolRuns[0].Status == AndroidAgentRunStatus.Succeeded,
+            $"{definition.Id} did not execute exactly one coordinated ADB run");
+        Require(result.ToolRuns[0].Steps.Single().Access == definition.Access,
+            $"{definition.Id} was not host-classified as {definition.Access}");
+        Require(File.Exists(result.EvidencePath), $"{definition.Id} task evidence is missing");
+        Require(provider.TurnsFor(definition.Id) == 2, $"{definition.Id} did not complete its provider/tool loop");
+    }
+
+    var snapshots = taskStore.Load();
+    Require(snapshots.Count == definitions.Length, "queued AI task snapshots were lost or overwritten");
+    Require(snapshots.Select(snapshot => snapshot.AgentId).Distinct(StringComparer.OrdinalIgnoreCase).Count() == definitions.Length,
+        "queued AI task snapshots were not isolated per agent");
+    Require(snapshots.All(snapshot => snapshot.Status is AiAgentTaskStatus.Completed or AiAgentTaskStatus.Cancelled),
+        "queued AI tasks persisted a nonterminal state");
+    Require(snapshots.Select(snapshot => snapshot.EvidencePath).Distinct(StringComparer.OrdinalIgnoreCase).Count() == definitions.Length,
+        "queued AI tasks did not receive isolated evidence files");
+
+    return (
+        results.Length,
+        results.Count(result => result.Status == AiAgentTaskStatus.Completed),
+        results.Count(result => result.Status == AiAgentTaskStatus.Cancelled),
+        transport.MaximumFor("device-ai-queue", "control"),
+        transport.MaximumFor("device-ai-queue", "observe"),
+        transport.MaximumTotalFor("device-ai-queue"));
+}
+
 static async Task RunLiveAdbProbe(string adbPath, string serial, string evidenceRoot)
 {
     await using var coordinator = new AndroidAgentCoordinator(new AdbAgentTransport(adbPath), evidenceRoot, maximumConcurrentAgents: 4);
@@ -367,11 +625,16 @@ static async Task RunLiveAdbProbe(string adbPath, string serial, string evidence
     var runs = await Task.WhenAll(
         coordinator.RunAsync(Plan("live-model", serial, AndroidAgentAccess.Observe, "shell", "getprop", "ro.product.model")),
         coordinator.RunAsync(Plan("live-dark-mode", serial, AndroidAgentAccess.Observe, "shell", "settings", "get", "secure", "ui_night_mode")),
-        coordinator.RunAsync(Plan("live-settings-launch", serial, AndroidAgentAccess.DeviceControl, "shell", "am", "start", "-a", "android.settings.SETTINGS")));
+        coordinator.RunAsync(Plan("live-settings-launch", serial, AndroidAgentAccess.DeviceControl, "shell", "am", "start", "-a", "android.settings.SETTINGS")),
+        coordinator.RunAsync(Plan("live-home", serial, AndroidAgentAccess.DeviceControl, "shell", "input", "keyevent", "KEYCODE_HOME")));
     Require(runs.All(run => run.Status == AndroidAgentRunStatus.Succeeded), "one or more live ADB agent runs failed");
     Require(runs[0].Steps[0].Command.StandardOutput.Trim() == "REPlayer Virtual Device", "live guest model is not neutral REPlayer");
     Require(runs[1].Steps[0].Command.StandardOutput.Trim() == "2", "live guest dark mode is not persistent");
     Require(runs.All(run => File.Exists(run.EvidencePath)), "live ADB evidence is incomplete");
+    var firstControl = runs[2].Steps[0].Command;
+    var secondControl = runs[3].Steps[0].Command;
+    Require(firstControl.EndedAtUtc <= secondControl.StartedAtUtc || secondControl.EndedAtUtc <= firstControl.StartedAtUtc,
+        "live same-device control commands overlapped");
     Console.WriteLine(JsonSerializer.Serialize(new
     {
         verdict = "PASS",
@@ -379,6 +642,8 @@ static async Task RunLiveAdbProbe(string adbPath, string serial, string evidence
         model = runs[0].Steps[0].Command.StandardOutput.Trim(),
         uiNightMode = runs[1].Steps[0].Command.StandardOutput.Trim(),
         settingsLaunchExitCode = runs[2].Steps[0].Command.ExitCode,
+        homeKeyExitCode = runs[3].Steps[0].Command.ExitCode,
+        sameDeviceControlsSerialized = true,
         evidence = runs.Select(run => run.EvidencePath).ToArray(),
     }, new JsonSerializerOptions { WriteIndented = true }));
 }
@@ -387,11 +652,15 @@ internal sealed class ProbeTransport : IAndroidAgentTransport
 {
     private readonly ConcurrentDictionary<string, int> _active = new(StringComparer.OrdinalIgnoreCase);
     private readonly ConcurrentDictionary<string, int> _maximum = new(StringComparer.OrdinalIgnoreCase);
+    private readonly ConcurrentDictionary<string, int> _activeTotal = new(StringComparer.OrdinalIgnoreCase);
+    private readonly ConcurrentDictionary<string, int> _maximumTotal = new(StringComparer.OrdinalIgnoreCase);
     private int _globalControls;
     private int _maximumGlobalControls;
 
     public int MaximumGlobalControls => Volatile.Read(ref _maximumGlobalControls);
+    public int ActiveFor(string serial, string category) => _active.GetValueOrDefault(serial + ":" + category);
     public int MaximumFor(string serial, string category) => _maximum.GetValueOrDefault(serial + ":" + category);
+    public int MaximumTotalFor(string serial) => _maximumTotal.GetValueOrDefault(serial);
 
     public async Task<AndroidAgentCommandResult> ExecuteAsync(
         string deviceSerial,
@@ -404,6 +673,8 @@ internal sealed class ProbeTransport : IAndroidAgentTransport
         var key = deviceSerial + ":" + category;
         var active = _active.AddOrUpdate(key, 1, static (_, current) => current + 1);
         _maximum.AddOrUpdate(key, active, (_, current) => Math.Max(current, active));
+        var activeTotal = _activeTotal.AddOrUpdate(deviceSerial, 1, static (_, current) => current + 1);
+        _maximumTotal.AddOrUpdate(deviceSerial, activeTotal, (_, current) => Math.Max(current, activeTotal));
         if (category == "control")
         {
             var controls = Interlocked.Increment(ref _globalControls);
@@ -418,7 +689,12 @@ internal sealed class ProbeTransport : IAndroidAgentTransport
             linked.CancelAfter(timeout);
             try
             {
-                var delayMilliseconds = arguments.Count > 1 && int.TryParse(arguments[1], out var parsedDelay) ? parsedDelay : 10;
+                var delayMilliseconds = arguments.Reverse()
+                    .Select(argument => int.TryParse(argument, out var parsed) ? parsed : -1)
+                    .Where(value => value >= 0)
+                    .DefaultIfEmpty(-1)
+                    .First();
+                if (delayMilliseconds < 0) delayMilliseconds = 10;
                 await Task.Delay(delayMilliseconds, linked.Token);
             }
             catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
@@ -439,6 +715,7 @@ internal sealed class ProbeTransport : IAndroidAgentTransport
         finally
         {
             _active.AddOrUpdate(key, 0, static (_, current) => current - 1);
+            _activeTotal.AddOrUpdate(deviceSerial, 0, static (_, current) => current - 1);
             if (category == "control") Interlocked.Decrement(ref _globalControls);
         }
     }
@@ -464,6 +741,50 @@ internal sealed class ProbeCredentialStore : IAgentCredentialStore
 internal sealed class ProbeAiProviderFactory(IAiAgentProviderClient client) : IAiAgentProviderClientFactory
 {
     public IAiAgentProviderClient Create(AiAgentProviderKind provider) => client;
+}
+
+internal sealed class ConcurrentQueueAiProviderClient : IAiAgentProviderClient
+{
+    private readonly ConcurrentDictionary<string, int> _turns = new(StringComparer.OrdinalIgnoreCase);
+
+    public int TurnsFor(string agentId) => _turns.GetValueOrDefault(agentId);
+
+    public Task<AiAgentProviderTurn> CompleteAsync(
+        AiAgentProfile profile,
+        string apiKey,
+        IReadOnlyList<AiAgentConversationMessage> messages,
+        CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        _turns.AddOrUpdate(profile.Id, 1, static (_, current) => current + 1);
+        if (!messages.Any(message => message.Role == "tool"))
+        {
+            var arguments = profile.Id.Contains("control", StringComparison.OrdinalIgnoreCase)
+                ? new[] { "control-" + profile.Id, "240" }
+                : new[] { "shell", "getprop", profile.Id, "240" };
+            var raw = JsonSerializer.Serialize(new { arguments, timeout_seconds = 2 });
+            var tool = OpenAiCompatibleAgentClient.ParseToolCall("tool-" + profile.Id, "execute_adb", raw);
+            return Task.FromResult(new AiAgentProviderTurn
+            {
+                Assistant = new AiAgentConversationMessage
+                {
+                    Role = "assistant",
+                    ToolCalls = new[] { tool },
+                },
+            });
+        }
+
+        if (!messages.Any(message => message.Role == "tool" && message.Content.Contains("\"ok\":true", StringComparison.Ordinal)))
+            throw new InvalidOperationException(profile.Id + " did not receive a successful ADB tool result");
+        return Task.FromResult(new AiAgentProviderTurn
+        {
+            Assistant = new AiAgentConversationMessage
+            {
+                Role = "assistant",
+                Content = profile.Id + " completed its queued Android task.",
+            },
+        });
+    }
 }
 
 internal sealed class ProbeAiProviderClient : IAiAgentProviderClient

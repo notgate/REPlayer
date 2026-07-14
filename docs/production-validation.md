@@ -109,7 +109,7 @@ Run the Phase 1 publication validator plus the Release live validator after a co
 dotnet run --project runtime-src/ReplayerAutomationProbe/ReplayerAutomationProbe.csproj -c Release
 ```
 
-Expected: same-device control concurrency `1`, same-device observe concurrency at least `2`, cross-device control concurrency at least `2`, timeout `TimedOut`, cancellation `Cancelled`, legacy root normalized, three inbox results, and valid JSONL evidence.
+Expected: same-device control concurrency `1`, same-device observe concurrency at least `2`, cross-device control concurrency at least `2`, timeout `TimedOut`, cancellation `Cancelled`, legacy root normalized, three inbox results, and valid JSONL evidence. The cross-provider queue must report nine tasks, eight Completed, one Cancelled, control maximum `1`, Observe maximum at least `4`, and mixed same-device maximum at least `5`. OpenRouter, OpenAI, Anthropic, and Z.AI must each complete one Observe and one DeviceControl task.
 
 Against a running canonical Release guest:
 
@@ -117,7 +117,15 @@ Against a running canonical Release guest:
 dotnet run --project runtime-src/ReplayerAutomationProbe/ReplayerAutomationProbe.csproj -c Release -- --live-adb runtime\google-emulator\sdk\platform-tools\adb.exe emulator-5554 runtime\validation\agents\live
 ```
 
-Expected: neutral model, `ui_night_mode=2`, successful serialized Settings launch, and three evidence files.
+Expected: neutral model, `ui_night_mode=2`, successful Settings and Home DeviceControl actions, non-overlapping control command intervals, and four evidence files.
+
+With `OPENROUTER_API_KEY` set, run the end-to-end provider queue:
+
+```powershell
+dotnet run --project runtime-src/ReplayerAutomationProbe/ReplayerAutomationProbe.csproj -c Release -- --live-agent-queue runtime\google-emulator\sdk\platform-tools\adb.exe emulator-5554 tencent/hy3:free runtime\validation\agents\live-provider-queue
+```
+
+Expected: four concurrent Tencent HY3 tasks (two Observe and two DeviceControl), four Completed snapshots, one successful ADB tool run per task, independent evidence files, and serialized same-device controls.
 
 ## Phase 6 — repository and rewritten-history gate
 

@@ -77,10 +77,10 @@ Each run receives an immutable run ID and JSONL event log. Interactive runs link
 
 ## Planner integration
 
-An LLM or deterministic agent should remain outside the ADB transport boundary:
+An LLM or deterministic agent remains outside the ADB transport boundary:
 
 1. Observe app/device state.
-2. Generate a structured plan with explicit access classifications.
+2. Generate a structured plan. Provider-backed `execute_adb` calls are classified as Observe or DeviceControl by REPlayer from the command arguments; the model cannot select its own access class. Trusted JSON-inbox clients still provide an explicit classification that the coordinator uses for scheduling.
 3. Write the plan atomically to the inbox.
 4. Await the matching outbox result.
 5. Consume command evidence and generate the next bounded plan.
@@ -95,7 +95,7 @@ Run:
 dotnet run --project runtime-src/ReplayerAutomationProbe/ReplayerAutomationProbe.csproj -c Release
 ```
 
-The probe verifies same-device serialization, concurrent observation, cross-device concurrency, timeout, cancellation, legacy root normalization, JSON inbox/outbox processing, and JSONL evidence integrity without requiring a live emulator or third-party test package.
+The probe verifies same-device serialization, concurrent observation, cross-device concurrency, timeout, cancellation, legacy root normalization, JSON inbox/outbox processing, and JSONL evidence integrity without requiring a live emulator or third-party test package. It also queues nine provider-backed tasks on one simulated device: OpenRouter, OpenAI, Anthropic, and Z.AI each receive simultaneous Observe and DeviceControl work, while a ninth queued control is cancelled. Four observations overlap, all controls serialize, and evidence/task snapshots remain isolated per agent.
 
 Against a running canonical guest, exercise the real bundled ADB transport with:
 
@@ -103,4 +103,14 @@ Against a running canonical guest, exercise the real bundled ADB transport with:
 dotnet run --project runtime-src/ReplayerAutomationProbe/ReplayerAutomationProbe.csproj -c Release -- --live-adb runtime\google-emulator\sdk\platform-tools\adb.exe emulator-5554 runtime\validation\agents\live
 ```
 
-The live mode concurrently reads the neutral model and dark-mode state, launches Settings through a serialized device-control step, and verifies all evidence files.
+The live mode concurrently reads the neutral model and dark-mode state, runs two serialized DeviceControl actions (Settings and Home), verifies their command intervals do not overlap, and validates four evidence files.
+
+With a provider key in the process environment, run the complete provider → task runner → coordinator → bundled ADB → guest loop:
+
+```powershell
+$env:OPENROUTER_API_KEY = '<key>'
+dotnet run --project runtime-src/ReplayerAutomationProbe/ReplayerAutomationProbe.csproj -c Release -- --live-agent-queue runtime\google-emulator\sdk\platform-tools\adb.exe emulator-5554 tencent/hy3:free runtime\validation\agents\live-provider-queue
+Remove-Item Env:OPENROUTER_API_KEY
+```
+
+This queues two Observe and two DeviceControl agents simultaneously. Every agent must make exactly one tool call, reach Completed, persist independent task/evidence files, and the two real same-device control commands must remain serialized. The key remains in the probe's in-memory credential store and is not written into profile or evidence JSON.
