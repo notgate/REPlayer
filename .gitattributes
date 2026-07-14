@@ -13,6 +13,10 @@
 *.md text eol=lf
 *.yml text eol=lf
 *.yaml text eol=lf
+*.svg text eol=lf
+
+# Preserve exact upstream redistribution notices byte-for-byte.
+third-party/dotnet/9.0.17/*.txt -text
 
 *.png binary
 *.jpg binary

@@ -6,7 +6,8 @@
     <UseWPF>true</UseWPF>
     <Nullable>enable</Nullable>
     <AssemblyName>REPlayer</AssemblyName>
-    <Version>0.1.0-rc.1</Version>
+    <Version>0.1.0-rc.2</Version>
+    <RuntimeFrameworkVersion>9.0.17</RuntimeFrameworkVersion>
   </PropertyGroup>
 
   <ItemGroup>
@@ -45,6 +46,22 @@
              CopyToPublishDirectory="PreserveNewest" />
     <Content Include="Assets\Setup\ANDROID-LOGO-NOTICE.md"
              Link="THIRD_PARTY\ANDROID-LOGO-NOTICE.md"
+             CopyToOutputDirectory="PreserveNewest"
+             CopyToPublishDirectory="PreserveNewest" />
+    <Content Include="..\third-party\dotnet\9.0.17\Microsoft.NETCore.App.Runtime.win-x64-LICENSE.txt"
+             Link="THIRD_PARTY\DOTNET\Microsoft.NETCore.App.Runtime.win-x64-LICENSE.txt"
+             CopyToOutputDirectory="PreserveNewest"
+             CopyToPublishDirectory="PreserveNewest" />
+    <Content Include="..\third-party\dotnet\9.0.17\Microsoft.NETCore.App.Runtime.win-x64-THIRD-PARTY-NOTICES.txt"
+             Link="THIRD_PARTY\DOTNET\Microsoft.NETCore.App.Runtime.win-x64-THIRD-PARTY-NOTICES.txt"
+             CopyToOutputDirectory="PreserveNewest"
+             CopyToPublishDirectory="PreserveNewest" />
+    <Content Include="..\third-party\dotnet\9.0.17\Microsoft.WindowsDesktop.App.Runtime.win-x64-LICENSE.txt"
+             Link="THIRD_PARTY\DOTNET\Microsoft.WindowsDesktop.App.Runtime.win-x64-LICENSE.txt"
+             CopyToOutputDirectory="PreserveNewest"
+             CopyToPublishDirectory="PreserveNewest" />
+    <Content Include="..\third-party\dotnet\9.0.17\SOURCE.txt"
+             Link="THIRD_PARTY\DOTNET\SOURCE.txt"
              CopyToOutputDirectory="PreserveNewest"
              CopyToPublishDirectory="PreserveNewest" />
   </ItemGroup>

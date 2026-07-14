@@ -1,0 +1,18 @@
+REPlayer .NET redistribution notice provenance
+
+Runtime pack version: 9.0.17
+Target runtime: win-x64
+
+Microsoft.NETCore.App.Runtime.win-x64
+Source package: https://www.nuget.org/packages/Microsoft.NETCore.App.Runtime.win-x64/9.0.17
+LICENSE source path: LICENSE.TXT
+LICENSE SHA-256: d7a68596ab69b06f51ca278a6545148e4269a9381c26d597c13df5d88e08cf5b
+THIRD-PARTY-NOTICES source path: THIRD-PARTY-NOTICES.TXT
+THIRD-PARTY-NOTICES SHA-256: 40686c6447a7d5b5d3693068e4571b5f483d7ed335aeee773ef662440de4c5d5
+
+Microsoft.WindowsDesktop.App.Runtime.win-x64
+Source package: https://www.nuget.org/packages/Microsoft.WindowsDesktop.App.Runtime.win-x64/9.0.17
+LICENSE source path: LICENSE
+LICENSE SHA-256: a89886665765362eb77e0f8e26602c924520041d1711b2eedc136434fe4d01ab
+
+The notice files in this directory are preserved byte-for-byte from the named NuGet packages.

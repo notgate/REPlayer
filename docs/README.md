@@ -8,7 +8,7 @@
     <img alt="Android Emulator" src="https://img.shields.io/badge/ANDROID-EMULATOR-3C3C3C?style=for-the-badge&labelColor=1E1E1E&color=3C3C3C">
     <img alt="Agentic Automation" src="https://img.shields.io/badge/AGENTS-AUTOMATION-3C3C3C?style=for-the-badge&labelColor=1E1E1E&color=3C3C3C">
     <img alt="Windows .NET 9" src="https://img.shields.io/badge/WINDOWS-.NET_9-3C3C3C?style=for-the-badge&labelColor=1E1E1E&color=3C3C3C">
-    <a href="https://github.com/notgate/REPlayer/releases/latest"><img alt="Release Candidate" src="https://img.shields.io/badge/RELEASE-v0.1.0_RC1-3C3C3C?style=for-the-badge&labelColor=1E1E1E&color=3C3C3C"></a>
+    <a href="https://github.com/notgate/REPlayer/releases/latest"><img alt="Release Candidate" src="https://img.shields.io/badge/RELEASE-v0.1.0_RC2-3C3C3C?style=for-the-badge&labelColor=1E1E1E&color=3C3C3C"></a>
     <a href="../LICENSE"><img alt="MIT License" src="https://img.shields.io/badge/LICENSE-MIT-3C3C3C?style=for-the-badge&labelColor=1E1E1E&color=3C3C3C"></a>
   </p>
 </div>
@@ -73,9 +73,9 @@ External automation can use the same coordinator through the validated inbox/out
 
 ## Builds and releases
 
-GitHub Actions builds, validates, and packages a self-contained `win-x64` application archive on every push. `v*` tags create review drafts with SHA-256 sidecars; preview tags remain prereleases, while verified `-rc.*` tags can be promoted as normal GitHub releases. Complete distributions add the separately verified Android runtime payload.
+GitHub Actions builds, validates, and packages a self-contained `win-x64` application archive on every push. `v*` tags create review drafts with SHA-256 sidecars; preview tags remain prereleases, while verified `-rc.<number>` tags can be promoted as normal GitHub releases. Complete distributions add the separately verified Android runtime payload.
 
-- [v0.1.0 RC1 release notes](releases/v0.1.0-rc.1.md)
+- [v0.1.0 RC2 release notes](releases/v0.1.0-rc.2.md)
 
 ## Documentation
 

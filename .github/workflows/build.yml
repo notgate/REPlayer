@@ -71,11 +71,27 @@ jobs:
           $requiredNotices = @(
             (Join-Path $publishDirectory 'LICENSE.txt'),
             (Join-Path $publishDirectory 'THIRD_PARTY_NOTICES.md'),
-            (Join-Path $publishDirectory 'THIRD_PARTY\ANDROID-LOGO-NOTICE.md')
+            (Join-Path $publishDirectory 'THIRD_PARTY\ANDROID-LOGO-NOTICE.md'),
+            (Join-Path $publishDirectory 'THIRD_PARTY\DOTNET\Microsoft.NETCore.App.Runtime.win-x64-LICENSE.txt'),
+            (Join-Path $publishDirectory 'THIRD_PARTY\DOTNET\Microsoft.NETCore.App.Runtime.win-x64-THIRD-PARTY-NOTICES.txt'),
+            (Join-Path $publishDirectory 'THIRD_PARTY\DOTNET\Microsoft.WindowsDesktop.App.Runtime.win-x64-LICENSE.txt'),
+            (Join-Path $publishDirectory 'THIRD_PARTY\DOTNET\SOURCE.txt')
           )
           foreach ($notice in $requiredNotices) {
             if (-not (Test-Path -LiteralPath $notice -PathType Leaf)) {
               throw "Published application is missing required notice: $notice"
+            }
+          }
+
+          $requiredNoticeHashes = [ordered]@{
+            (Join-Path $publishDirectory 'THIRD_PARTY\DOTNET\Microsoft.NETCore.App.Runtime.win-x64-LICENSE.txt') = 'd7a68596ab69b06f51ca278a6545148e4269a9381c26d597c13df5d88e08cf5b'
+            (Join-Path $publishDirectory 'THIRD_PARTY\DOTNET\Microsoft.NETCore.App.Runtime.win-x64-THIRD-PARTY-NOTICES.txt') = '40686c6447a7d5b5d3693068e4571b5f483d7ed335aeee773ef662440de4c5d5'
+            (Join-Path $publishDirectory 'THIRD_PARTY\DOTNET\Microsoft.WindowsDesktop.App.Runtime.win-x64-LICENSE.txt') = 'a89886665765362eb77e0f8e26602c924520041d1711b2eedc136434fe4d01ab'
+          }
+          foreach ($entry in $requiredNoticeHashes.GetEnumerator()) {
+            $actualHash = (Get-FileHash -LiteralPath $entry.Key -Algorithm SHA256).Hash.ToLowerInvariant()
+            if ($actualHash -ne $entry.Value) {
+              throw "Published notice hash mismatch: $($entry.Key)"
             }
           }
 
@@ -111,6 +127,9 @@ jobs:
     permissions:
       contents: write
     steps:
+      - name: Check out release notes
+        uses: actions/checkout@v4
+
       - name: Download verified release assets
         uses: actions/download-artifact@v4
         with:
@@ -127,9 +146,14 @@ jobs:
           if [[ "$GITHUB_REF_NAME" == *-* && ! "$GITHUB_REF_NAME" =~ -rc\.[0-9]+$ ]]; then
             release_flags+=(--prerelease)
           fi
+          notes_flags=(--generate-notes)
+          notes_file="docs/releases/${GITHUB_REF_NAME}.md"
+          if [[ -f "$notes_file" ]]; then
+            notes_flags=(--notes-file "$notes_file")
+          fi
           gh release create "$GITHUB_REF_NAME" "${assets[@]}" \
             --repo "$GITHUB_REPOSITORY" \
             --verify-tag \
             "${release_flags[@]}" \
-            --generate-notes \
+            "${notes_flags[@]}" \
             --title "REPlayer $GITHUB_REF_NAME"

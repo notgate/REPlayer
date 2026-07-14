@@ -16,6 +16,8 @@ The setup UI's Android glyph is sourced from Simple Icons under CC0-1.0. Provena
 
 REPlayer uses .NET and Windows APIs. Microsoft framework/runtime components and tooling retain their upstream licenses and notices.
 
+The self-contained Windows application pins `Microsoft.NETCore.App.Runtime.win-x64` and `Microsoft.WindowsDesktop.App.Runtime.win-x64` to version 9.0.17. Exact upstream licenses, the .NET Core runtime third-party notice, package URLs, and source hashes are retained under [`third-party/dotnet/9.0.17`](../third-party/dotnet/9.0.17/SOURCE.txt) and are packaged under `THIRD_PARTY/DOTNET/` in every release archive.
+
 ## Hosted model providers
 
 OpenAI, Anthropic, OpenRouter, Z.AI, and other provider names are used to identify optional integrations. Their APIs, services, names, and marks remain subject to their owners' terms and do not form part of the MIT-licensed REPlayer source.
