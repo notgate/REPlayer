@@ -1,13 +1,15 @@
 <Window x:Class="ReVM.AgentCenterDialog"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Agent Center" Width="760" Height="520" MinWidth="680" MinHeight="440"
+        Title="Agent Center" Width="900" Height="650" MinWidth="780" MinHeight="560"
         WindowStyle="None" ResizeMode="CanResize" Background="#1E1E1E"
         WindowStartupLocation="CenterOwner" ShowInTaskbar="False">
     <WindowChrome.WindowChrome>
         <WindowChrome CaptionHeight="28" ResizeBorderThickness="5" CornerRadius="0" GlassFrameThickness="0"/>
     </WindowChrome.WindowChrome>
     <Window.Resources>
+      <ResourceDictionary>
+        <ResourceDictionary.MergedDictionaries><ResourceDictionary Source="AgentCenterTheme.xaml"/></ResourceDictionary.MergedDictionaries>
         <SolidColorBrush x:Key="BorderBrush" Color="#3C3C3C"/>
         <Style x:Key="VscodeToolTip" TargetType="ToolTip">
             <Setter Property="Background" Value="#252526"/>
@@ -32,6 +34,23 @@
             <Setter Property="Height" Value="26"/><Setter Property="MinWidth" Value="74"/><Setter Property="Padding" Value="10,0"/>
             <Setter Property="Background" Value="#2D2D2D"/><Setter Property="Foreground" Value="#CCCCCC"/>
             <Setter Property="BorderBrush" Value="#454545"/><Setter Property="BorderThickness" Value="1"/><Setter Property="FontSize" Value="11"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="ButtonBorder" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}" Padding="{TemplateBinding Padding}" SnapsToDevicePixels="True">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" RecognizesAccessKey="True"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="ButtonBorder" Property="Background" Value="#3E3E3E"/><Setter TargetName="ButtonBorder" Property="BorderBrush" Value="#666666"/><Setter Property="Foreground" Value="#FFFFFF"/></Trigger>
+                            <Trigger Property="IsKeyboardFocused" Value="True"><Setter TargetName="ButtonBorder" Property="BorderBrush" Value="#858585"/></Trigger>
+                            <Trigger Property="IsPressed" Value="True"><Setter TargetName="ButtonBorder" Property="Background" Value="#252526"/><Setter TargetName="ButtonBorder" Property="BorderBrush" Value="#858585"/></Trigger>
+                            <Trigger Property="IsEnabled" Value="False"><Setter TargetName="ButtonBorder" Property="Background" Value="#252526"/><Setter TargetName="ButtonBorder" Property="BorderBrush" Value="#333333"/><Setter Property="Foreground" Value="#5A5A5A"/><Setter Property="Cursor" Value="Arrow"/></Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
         <Style x:Key="AgentText" TargetType="TextBox">
             <Setter Property="Height" Value="26"/><Setter Property="Background" Value="#1E1E1E"/><Setter Property="Foreground" Value="#CCCCCC"/>
@@ -71,6 +90,8 @@
                                             <Grid>
                                                 <ContentPresenter Margin="7,0,24,0" VerticalAlignment="Center"
                                                                   Content="{Binding SelectionBoxItem, RelativeSource={RelativeSource AncestorType=ComboBox}}"
+                                                                  ContentTemplate="{Binding SelectionBoxItemTemplate, RelativeSource={RelativeSource AncestorType=ComboBox}}"
+                                                                  ContentTemplateSelector="{Binding ItemTemplateSelector, RelativeSource={RelativeSource AncestorType=ComboBox}}"
                                                                   TextElement.Foreground="#CCCCCC"/>
                                                 <Path Data="M0,0 L4,4 L8,0" Stroke="#858585" StrokeThickness="1" Width="8" Height="4"
                                                       HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,8,0"/>
@@ -126,10 +147,11 @@
                 </Setter.Value>
             </Setter>
         </Style>
+      </ResourceDictionary>
     </Window.Resources>
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="28"/><RowDefinition Height="112"/><RowDefinition Height="*"/><RowDefinition Height="116"/><RowDefinition Height="34"/>
+            <RowDefinition Height="28"/><RowDefinition Height="184"/><RowDefinition Height="*"/><RowDefinition Height="124"/><RowDefinition Height="34"/>
         </Grid.RowDefinitions>
 
         <Border Grid.Row="0" Background="#323233" BorderBrush="#454545" BorderThickness="0,0,0,1">
@@ -143,38 +165,46 @@
 
         <Border Grid.Row="1" Background="#252526" BorderBrush="#3C3C3C" BorderThickness="0,0,0,1" Padding="10,8">
             <Grid>
-                <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
-                <Grid.ColumnDefinitions><ColumnDefinition Width="82"/><ColumnDefinition Width="150"/><ColumnDefinition Width="72"/><ColumnDefinition Width="140"/><ColumnDefinition Width="74"/><ColumnDefinition Width="70"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="66"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                <Grid.ColumnDefinitions><ColumnDefinition Width="76"/><ColumnDefinition Width="250"/><ColumnDefinition Width="86"/><ColumnDefinition Width="128"/><ColumnDefinition Width="72"/><ColumnDefinition Width="56"/><ColumnDefinition Width="56"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
                 <TextBlock Text="AGENT" Foreground="#858585" FontSize="9" VerticalAlignment="Center"/>
-                <TextBox x:Name="AgentIdBox" Grid.Column="1" Text="agent-1" Style="{StaticResource AgentText}"/>
-                <TextBlock Grid.Column="2" Text="ACCESS" Foreground="#858585" FontSize="9" VerticalAlignment="Center" Margin="10,0,0,0"/>
-                <ComboBox x:Name="AccessCombo" Grid.Column="3" Style="{StaticResource AgentCombo}" SelectedIndex="0">
-                    <ComboBoxItem Content="Observe (concurrent)" Tag="Observe"/>
+                <ComboBox x:Name="AgentProfileCombo" Grid.Column="1" Style="{StaticResource AgentCombo}" SelectionChanged="AgentProfileCombo_SelectionChanged">
+                    <ComboBox.ItemTemplate><DataTemplate><TextBlock Text="{Binding Name}"/></DataTemplate></ComboBox.ItemTemplate>
+                </ComboBox>
+                <Button Grid.Column="2" x:Name="ConfigureAgentButton" Content="Setup" Click="ConfigureAgent_Click" Style="{StaticResource AgentButton}" Margin="6,0,0,0"/>
+                <TextBlock Grid.Column="3" Text="ACCESS" Foreground="#858585" FontSize="9" VerticalAlignment="Center" Margin="10,0,0,0"/>
+                <ComboBox x:Name="AccessCombo" Grid.Column="4" Grid.ColumnSpan="2" Style="{StaticResource AgentCombo}" SelectedIndex="0">
+                    <ComboBoxItem Content="Observe" Tag="Observe" ToolTip="Read-only ADB calls may run concurrently"/>
                     <ComboBoxItem Content="Device control" Tag="DeviceControl"/>
                 </ComboBox>
-                <TextBlock Grid.Column="4" Text="TIMEOUT" Foreground="#858585" FontSize="9" VerticalAlignment="Center" Margin="10,0,0,0"/>
-                <TextBox x:Name="TimeoutBox" Grid.Column="5" Text="30" Style="{StaticResource AgentText}"/>
-                <TextBlock Grid.Column="6" Text="seconds" Foreground="#858585" FontSize="10" VerticalAlignment="Center" Margin="5,0,0,0"/>
+                <TextBlock Grid.Column="6" Text="TIMEOUT" Foreground="#858585" FontSize="9" VerticalAlignment="Center" Margin="10,0,0,0"/>
+                <StackPanel Grid.Column="7" Orientation="Horizontal"><TextBox x:Name="TimeoutBox" Text="120" Width="48" Style="{StaticResource AgentText}"/><TextBlock Text="sec" Foreground="#858585" FontSize="10" VerticalAlignment="Center" Margin="5,0,0,0"/></StackPanel>
 
                 <TextBlock Grid.Row="1" Text="PACKAGE" Foreground="#858585" FontSize="9" VerticalAlignment="Center" Margin="0,7,0,0"/>
                 <TextBox x:Name="PackageBox" Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" Style="{StaticResource AgentText}" Margin="0,7,6,0" ToolTip="Optional Android package used for task evidence"/>
-                <TextBlock Grid.Row="1" Grid.Column="3" Text="ADB ARGUMENTS" Foreground="#858585" FontSize="9" VerticalAlignment="Center" Margin="10,7,0,0"/>
-                <TextBox x:Name="CommandBox" Grid.Row="1" Grid.Column="4" Grid.ColumnSpan="3" Text="shell dumpsys activity activities" Style="{StaticResource AgentText}" Margin="0,7,0,0" ToolTip="Arguments passed directly to bundled ADB; no host shell is used"/>
+                <TextBlock Grid.Row="1" Grid.Column="3" Text="MAX TURNS" Foreground="#858585" FontSize="9" VerticalAlignment="Center" Margin="10,7,0,0"/>
+                <TextBox x:Name="MaximumTurnsBox" Grid.Row="1" Grid.Column="4" Text="12" Style="{StaticResource AgentText}" Margin="0,7,0,0"/>
+                <TextBlock Grid.Row="1" Grid.Column="5" Grid.ColumnSpan="3" x:Name="ProviderText" Foreground="#858585" FontFamily="Cascadia Mono, Consolas" FontSize="10" VerticalAlignment="Center" Margin="10,7,0,0" TextTrimming="CharacterEllipsis"/>
 
-                <TextBlock Grid.Row="2" Grid.ColumnSpan="5" x:Name="DeviceText" Foreground="#858585" FontFamily="Cascadia Mono, Consolas" FontSize="10" VerticalAlignment="Center" Margin="0,7,0,0"/>
-                <Button Grid.Row="2" Grid.Column="5" Grid.ColumnSpan="2" Content="Queue agent" Click="Queue_Click" Style="{StaticResource AgentButton}" HorizontalAlignment="Right" Margin="0,7,0,0"/>
+                <TextBlock Grid.Row="2" Text="TASK" Foreground="#858585" FontSize="9" VerticalAlignment="Top" Margin="0,12,0,0"/>
+                <TextBox x:Name="TaskPromptBox" Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="7" AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto"
+                         Background="#1E1E1E" Foreground="#CCCCCC" CaretBrush="#CCCCCC" BorderBrush="#3C3C3C" BorderThickness="1" Padding="7,5" FontSize="11" Margin="0,7,0,0"
+                         ToolTip="Describe the result the selected AI agent must complete. The agent may call bundled ADB through the controlled tool interface."/>
+
+                <TextBlock Grid.Row="3" Grid.ColumnSpan="6" x:Name="DeviceText" Foreground="#858585" FontFamily="Cascadia Mono, Consolas" FontSize="10" VerticalAlignment="Center" Margin="0,7,0,0"/>
+                <Button Grid.Row="3" Grid.Column="6" Grid.ColumnSpan="2" x:Name="QueueTaskButton" Content="Queue task" Click="Queue_Click" Style="{StaticResource AgentButton}" HorizontalAlignment="Right" Margin="0,7,0,0" MinWidth="92"/>
             </Grid>
         </Border>
 
         <ListView x:Name="RunList" Grid.Row="2" Background="#1E1E1E" Foreground="#CCCCCC" BorderThickness="0" SelectionChanged="RunList_SelectionChanged" FontSize="11">
             <ListView.View>
                 <GridView AllowsColumnReorder="False">
-                    <GridViewColumn Header="AGENT" Width="120" DisplayMemberBinding="{Binding AgentId}"/>
-                    <GridViewColumn Header="ACCESS" Width="105" DisplayMemberBinding="{Binding Access}"/>
-                    <GridViewColumn Header="STATUS" Width="92" DisplayMemberBinding="{Binding Status}"/>
-                    <GridViewColumn Header="STEP" Width="190" DisplayMemberBinding="{Binding Step}"/>
-                    <GridViewColumn Header="DURATION" Width="82" DisplayMemberBinding="{Binding Duration}"/>
-                    <GridViewColumn Header="RESULT" Width="145" DisplayMemberBinding="{Binding Summary}"/>
+                    <GridViewColumn Header="AGENT" Width="135" DisplayMemberBinding="{Binding AgentId}"/>
+                    <GridViewColumn Header="PROVIDER" Width="130" DisplayMemberBinding="{Binding Provider}"/>
+                    <GridViewColumn Header="STATUS" Width="90" DisplayMemberBinding="{Binding Status}"/>
+                    <GridViewColumn Header="TASK" Width="205" DisplayMemberBinding="{Binding Step}"/>
+                    <GridViewColumn Header="DURATION" Width="80" DisplayMemberBinding="{Binding Duration}"/>
+                    <GridViewColumn Header="RESULT" Width="245" DisplayMemberBinding="{Binding Summary}"/>
                 </GridView>
             </ListView.View>
         </ListView>
@@ -187,9 +217,9 @@
         <Border Grid.Row="4" Background="#252526" BorderBrush="#3C3C3C" BorderThickness="0,1,0,0" Padding="8,4">
             <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                 <TextBlock x:Name="StatusText" Text="Ready" Foreground="#858585" FontSize="10" VerticalAlignment="Center"/>
-                <Button Grid.Column="1" Content="Open inbox" Click="OpenInbox_Click" Style="{StaticResource AgentButton}" Margin="0,0,6,0"/>
-                <Button Grid.Column="2" Content="Open evidence" Click="OpenEvidence_Click" Style="{StaticResource AgentButton}" Margin="0,0,6,0"/>
-                <Button Grid.Column="3" Content="Cancel selected" Click="Cancel_Click" Style="{StaticResource AgentButton}"/>
+                <Button Grid.Column="1" x:Name="OpenInboxButton" Content="Open inbox" Click="OpenInbox_Click" Style="{StaticResource AgentButton}" Margin="0,0,6,0"/>
+                <Button Grid.Column="2" x:Name="OpenEvidenceButton" Content="Open evidence" Click="OpenEvidence_Click" Style="{StaticResource AgentButton}" Margin="0,0,6,0"/>
+                <Button Grid.Column="3" x:Name="CancelSelectedButton" Content="Cancel selected" Click="Cancel_Click" Style="{StaticResource AgentButton}" IsEnabled="False"/>
             </Grid>
         </Border>
     </Grid>

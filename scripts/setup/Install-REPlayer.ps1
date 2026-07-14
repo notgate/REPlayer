@@ -357,7 +357,7 @@ try {
     $runtimeManifestPath = Join-Path $payloadRoot 'runtime\replayer-runtime-manifest.json'
     $distributionManifestPath = Join-Path $payloadRoot 'replayer-distribution-manifest.json'
     $distributionManifest = Assert-ManifestFileSet $payloadRoot $distributionManifestPath `
-        $ExpectedDistributionManifestSha256 'Application' @('setup.bat','run-replayer.bat') @('runtime','scripts/setup')
+        $ExpectedDistributionManifestSha256 'Application' @('setup.bat') @('runtime','scripts/setup')
     $runtimeManifest = Assert-ManifestFileSet (Join-Path $payloadRoot 'runtime') $runtimeManifestPath `
         $ExpectedRuntimeManifestSha256 'Runtime'
     $payloadBytes = [long]$runtimeManifest.totalBytes + [long]$distributionManifest.totalBytes

@@ -18,13 +18,11 @@ def require(condition: bool, message: str, findings: list[str]) -> None:
 def main() -> int:
     findings: list[str] = []
     setup_path = ROOT / "setup.bat"
-    run_path = ROOT / "run-replayer.bat"
     installer_path = ROOT / "scripts" / "setup" / "Install-REPlayer.ps1"
     packager_path = ROOT / "scripts" / "setup" / "New-REPlayerDistribution.ps1"
     probe_path = ROOT / "scripts" / "validation" / "installer" / "probe_setup_pipeline.ps1"
 
     setup = setup_path.read_text(encoding="utf-8", errors="replace") if setup_path.exists() else ""
-    run = run_path.read_text(encoding="utf-8", errors="replace") if run_path.exists() else ""
     installer = installer_path.read_text(encoding="utf-8", errors="replace") if installer_path.exists() else ""
     packager = packager_path.read_text(encoding="utf-8", errors="replace") if packager_path.exists() else ""
     runtime_service_path = ROOT / "ReVM" / "Runtime" / "Google" / "EmulatorService.cs"
@@ -65,10 +63,8 @@ def main() -> int:
     for token in ("replayer-runtime-manifest.json", "replayer-baseline.json", "qemu-img", "Get-FileHash"):
         require(token in packager, f"distribution builder is missing runtime integrity/relocation token: {token}", findings)
 
-    require("Install-REPlayer.ps1" in run,
-            "run-replayer.bat does not use the same supported install/launch resolver", findings)
-    require("fixed-debug-run" not in run,
-            "run-replayer.bat still points at the obsolete fixed-debug-run directory", findings)
+    require(not (ROOT / "run-replayer.bat").exists(),
+            "obsolete run-replayer.bat launcher was reintroduced", findings)
 
     baseline_guard = "The prepublished API 34 baseline is missing"
     require(baseline_guard in runtime_service,

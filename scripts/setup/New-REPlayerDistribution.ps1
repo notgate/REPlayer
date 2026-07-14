@@ -192,7 +192,6 @@ $setupScripts = Join-Path $OutputDirectory 'scripts\setup'
 Copy-Item -LiteralPath (Join-Path $SourceRoot 'scripts\setup\Install-REPlayer.ps1') -Destination $setupScripts -Force
 Copy-Item -LiteralPath (Join-Path $SourceRoot 'scripts\setup\New-REPlayerDistribution.ps1') -Destination $setupScripts -Force
 Copy-Item -LiteralPath (Join-Path $SourceRoot 'setup.bat') -Destination $OutputDirectory -Force
-Copy-Item -LiteralPath (Join-Path $SourceRoot 'run-replayer.bat') -Destination $OutputDirectory -Force
 
 Write-Host "[5/5] Hashing the distributable payload..."
 $runtimeMutable = @(
@@ -211,7 +210,6 @@ New-HashManifest $runtimeOut (Join-Path $runtimeOut 'replayer-runtime-manifest.j
 }
 $appExclusions = @(
     'setup.bat',
-    'run-replayer.bat',
     'scripts/setup/Install-REPlayer.ps1',
     'scripts/setup/New-REPlayerDistribution.ps1',
     'runtime/replayer-runtime-manifest.json'

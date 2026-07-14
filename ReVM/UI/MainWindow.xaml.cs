@@ -72,7 +72,12 @@ public partial class MainWindow : Window
     private Process? _recordingProcess;
     private AndroidAgentCoordinator? _agentCoordinator;
     private AndroidAgentInbox? _agentInbox;
+    private AiAgentTaskRunner? _aiAgentTaskRunner;
     private AgentCenterDialog? _agentCenterDialog;
+    private readonly IAgentCredentialStore _agentCredentialStore;
+    private readonly AiAgentProfileStore _agentProfileStore;
+    private readonly AiAgentTaskStore _agentTaskStore;
+    private readonly AiAgentProviderClientFactory _agentProviderFactory;
     private string? _agentCoordinatorSerial;
     private string? _recordingDevicePath;
     private string? _recordingOutputPath;
@@ -147,6 +152,11 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+        Directory.CreateDirectory(RevmPaths.AgentCenterDir);
+        _agentCredentialStore = new WindowsAgentCredentialStore();
+        _agentProfileStore = new AiAgentProfileStore(Path.Combine(RevmPaths.AgentCenterDir, "profiles.json"), _agentCredentialStore);
+        _agentTaskStore = new AiAgentTaskStore(Path.Combine(RevmPaths.AgentCenterDir, "tasks"));
+        _agentProviderFactory = new AiAgentProviderClientFactory();
         Opacity = 0;
         ShowInTaskbar = false;
         ShowActivated = false;
@@ -1706,10 +1716,13 @@ public partial class MainWindow : Window
         try { _mainWindowSource?.RemoveHook(MainWindowWindowProc); } catch { }
         _mainWindowSource = null;
         try { _resizeDebounce?.Stop(); _resizeDebounce?.Dispose(); } catch { }
+        try { _agentCenterDialog?.CancelActiveTasks(); } catch { }
         try { _agentInbox?.DisposeAsync().AsTask().GetAwaiter().GetResult(); } catch { }
         try { _agentCoordinator?.DisposeAsync().AsTask().GetAwaiter().GetResult(); } catch { }
+        try { _agentProviderFactory.Dispose(); } catch { }
         _agentInbox = null;
         _agentCoordinator = null;
+        _aiAgentTaskRunner = null;
         _agentCenterDialog = null;
         try { _engine.StopAll(); } catch { }
         ForceKillRuntimeProcesses();
@@ -2070,6 +2083,7 @@ public partial class MainWindow : Window
         }
         if (_agentCoordinator is null || !string.Equals(_agentCoordinatorSerial, serial, StringComparison.OrdinalIgnoreCase))
         {
+            _agentCenterDialog?.CancelActiveTasks();
             if (_agentInbox is not null) await _agentInbox.DisposeAsync();
             if (_agentCoordinator is not null) await _agentCoordinator.DisposeAsync();
             _agentCenterDialog?.Close();
@@ -2078,12 +2092,14 @@ public partial class MainWindow : Window
             var evidenceRoot = Path.Combine(runDirectory ?? Path.Combine(RevmPaths.BaseDir, "runtime", "agent-runs"), "agents");
             _agentCoordinator = new AndroidAgentCoordinator(new AdbAgentTransport(adbPath), evidenceRoot, maximumConcurrentAgents: 8);
             var safeSerial = string.Concat(serial.Select(character => char.IsLetterOrDigit(character) || character is '.' or '-' or '_' ? character : '_'));
-            _agentInbox = new AndroidAgentInbox(_agentCoordinator, Path.Combine(RevmPaths.BaseDir, "runtime", "agent-harness", safeSerial), serial);
+            _agentInbox = new AndroidAgentInbox(_agentCoordinator, Path.Combine(RevmPaths.AgentCenterDir, "devices", safeSerial), serial);
+            _aiAgentTaskRunner = new AiAgentTaskRunner(_agentCoordinator, _agentCredentialStore, _agentProviderFactory, _agentTaskStore);
             _agentCoordinatorSerial = serial;
         }
         if (_agentCenterDialog is null)
         {
-            var dialog = new AgentCenterDialog(_agentCoordinator, serial, _agentInbox!.InboxDirectory) { Owner = this };
+            var dialog = new AgentCenterDialog(_agentCoordinator, _aiAgentTaskRunner!, _agentProfileStore, _agentTaskStore,
+                _agentProviderFactory, serial, _agentInbox!.InboxDirectory) { Owner = this };
             dialog.Closed += (_, _) => { if (ReferenceEquals(_agentCenterDialog, dialog)) _agentCenterDialog = null; };
             _agentCenterDialog = dialog;
             dialog.Show();

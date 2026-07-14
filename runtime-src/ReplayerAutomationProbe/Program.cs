@@ -7,8 +7,21 @@ using System.Linq;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows;
 using ReVM;
 using ReVM.Automation;
+
+if (args.Length >= 1 && args[0] == "--live-openrouter")
+{
+    await RunLiveOpenRouterProbe(args.Length >= 2 ? args[1] : "tencent/hy3:free");
+    return;
+}
+
+if (args.Length >= 2 && args[0] == "--ui")
+{
+    await RunAgentCenterUiProbe(args[1]);
+    return;
+}
 
 if (args.Length >= 3 && args[0] == "--live-adb")
 {
@@ -114,6 +127,8 @@ await using (var inbox = new AndroidAgentInbox(coordinator, inboxRoot, "device-i
     }
 }
 
+var aiProbe = await RunAiAgentTaskProbe(root, coordinator);
+
 var allResults = sameDeviceControls.Concat(observations).Concat(crossDeviceControls).Append(timeout).Append(cancelled).ToArray();
 foreach (var result in allResults)
 {
@@ -134,6 +149,8 @@ Console.WriteLine(JsonSerializer.Serialize(new
     cancellation = cancelled.Status.ToString(),
     legacyAdbRootNormalized = !legacySettings.AdbRoot,
     inboxResults = 3,
+    aiTaskStatus = aiProbe.Status.ToString(),
+    aiProviderTurns = aiProbe.ProviderTurns,
     evidenceRuns = allResults.Length,
     evidenceRoot = root,
 }, new JsonSerializerOptions { WriteIndented = true }));
@@ -141,6 +158,192 @@ Console.WriteLine(JsonSerializer.Serialize(new
 static void Require(bool condition, string message)
 {
     if (!condition) throw new InvalidOperationException(message);
+}
+
+static async Task RunLiveOpenRouterProbe(string model)
+{
+    var key = Environment.GetEnvironmentVariable("OPENROUTER_API_KEY");
+    if (string.IsNullOrWhiteSpace(key)) throw new InvalidOperationException("OPENROUTER_API_KEY is required.");
+    var profile = new AiAgentProfile
+    {
+        Id = "openrouter-live",
+        Name = "OpenRouter live probe",
+        Provider = AiAgentProviderKind.OpenRouter,
+        Model = model,
+        BaseUrl = AgentProviderCatalog.DefaultBaseUrl(AiAgentProviderKind.OpenRouter),
+        MaximumTurns = 2,
+    };
+    using var factory = new AiAgentProviderClientFactory();
+    using var timeout = new CancellationTokenSource(TimeSpan.FromMinutes(2));
+    var turn = await factory.Create(profile.Provider).CompleteAsync(profile, key,
+        new[]
+        {
+            new AiAgentConversationMessage { Role = "system", Content = "This is a connectivity probe. Do not call tools." },
+            new AiAgentConversationMessage { Role = "user", Content = "Reply with REPLAYER_OPENROUTER_READY and no other text." },
+        }, timeout.Token);
+    Require(turn.Assistant.ToolCalls.Count == 0, "live provider unexpectedly requested an ADB tool");
+    Require(!string.IsNullOrWhiteSpace(turn.Assistant.Content), "live provider returned no text");
+    Console.WriteLine(JsonSerializer.Serialize(new
+    {
+        verdict = "PASS",
+        provider = "OpenRouter",
+        model,
+        response = turn.Assistant.Content.Trim(),
+        reasoningContinuityPayloadPresent = turn.Assistant.ReasoningDetails.HasValue,
+    }, new JsonSerializerOptions { WriteIndented = true }));
+}
+
+static Task RunAgentCenterUiProbe(string surface)
+{
+    var completion = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+    var thread = new Thread(() =>
+    {
+        AndroidAgentCoordinator? coordinator = null;
+        try
+        {
+            var root = Path.Combine(Path.GetTempPath(), "replayer-agent-ui-probe");
+            if (Directory.Exists(root)) Directory.Delete(root, recursive: true);
+            Directory.CreateDirectory(root);
+            var credentials = new ProbeCredentialStore();
+            var profiles = new AiAgentProfileStore(Path.Combine(root, "profiles.json"), credentials);
+            var profile = new AiAgentProfile
+            {
+                Id = "hy3-free",
+                Name = "Tencent HY3 Free",
+                Provider = AiAgentProviderKind.OpenRouter,
+                Model = "tencent/hy3:free",
+                BaseUrl = "https://openrouter.ai/api/v1",
+                MaximumTurns = 12,
+            };
+            profiles.Save(profile, "ui-probe-placeholder");
+            var tasks = new AiAgentTaskStore(Path.Combine(root, "tasks"));
+            foreach (var sample in new[]
+                     {
+                         ("task-complete", AiAgentTaskStatus.Completed, "Observed the active Android identity and captured the requested package state.", (string?)null),
+                         ("task-incomplete", AiAgentTaskStatus.Incomplete, "", "The requested package was not installed on the active device."),
+                         ("task-pending", AiAgentTaskStatus.Pending, "", (string?)null),
+                     })
+            {
+                var evidenceDirectory = Path.Combine(tasks.Path, "evidence", sample.Item1);
+                Directory.CreateDirectory(evidenceDirectory);
+                var evidencePath = Path.Combine(evidenceDirectory, "events.jsonl");
+                File.WriteAllLines(evidencePath, new[]
+                {
+                    JsonSerializer.Serialize(new { type = "task.pending", taskId = sample.Item1, timestampUtc = DateTimeOffset.UtcNow.AddSeconds(-2) }),
+                    JsonSerializer.Serialize(new { type = "provider.turn", taskId = sample.Item1, turn = 1, content = "Inspecting device state", toolCallCount = 1, timestampUtc = DateTimeOffset.UtcNow.AddSeconds(-1) }),
+                    JsonSerializer.Serialize(new { type = "task.completed", taskId = sample.Item1, status = sample.Item2.ToString(), report = sample.Item3, error = sample.Item4, timestampUtc = DateTimeOffset.UtcNow }),
+                });
+                tasks.Save(new AiAgentTaskSnapshot
+                {
+                    TaskId = sample.Item1,
+                    AgentId = profile.Id,
+                    AgentName = profile.Name,
+                    Provider = profile.ProviderDisplayName,
+                    Model = profile.Model,
+                    DeviceSerial = "emulator-5554",
+                    Prompt = "Inspect the active Android identity and report evidence.",
+                    Status = sample.Item2,
+                    CreatedAtUtc = DateTimeOffset.UtcNow.AddMinutes(-2),
+                    StartedAtUtc = DateTimeOffset.UtcNow.AddMinutes(-2),
+                    EndedAtUtc = sample.Item2 == AiAgentTaskStatus.Pending ? null : DateTimeOffset.UtcNow,
+                    Report = sample.Item3,
+                    Error = sample.Item4,
+                    EvidencePath = evidencePath,
+                    ToolRunCount = 1,
+                });
+            }
+
+            coordinator = new AndroidAgentCoordinator(new ProbeTransport(), Path.Combine(root, "adb-evidence"), 4);
+            var provider = new ProbeAiProviderClient();
+            var providerFactory = new ProbeAiProviderFactory(provider);
+            var runner = new AiAgentTaskRunner(coordinator, credentials, providerFactory, tasks);
+            Window window = surface.Trim().ToLowerInvariant() switch
+            {
+                "setup" => new AgentSetupDialog(profiles, providerFactory, profile.Id),
+                "inbox" => new AgentInboxWindow(tasks, Path.Combine(root, "devices", "emulator-5554", "inbox")),
+                "evidence" => new AgentEvidenceWindow(tasks, "task-complete"),
+                _ => new AgentCenterDialog(coordinator, runner, profiles, tasks, providerFactory, "emulator-5554", Path.Combine(root, "devices", "emulator-5554", "inbox")),
+            };
+            window.ShowInTaskbar = true;
+            var app = new System.Windows.Application { ShutdownMode = ShutdownMode.OnMainWindowClose };
+            app.Run(window);
+            coordinator.DisposeAsync().AsTask().GetAwaiter().GetResult();
+            coordinator = null;
+            completion.TrySetResult();
+        }
+        catch (Exception ex)
+        {
+            try { coordinator?.DisposeAsync().AsTask().GetAwaiter().GetResult(); } catch { }
+            completion.TrySetException(ex);
+        }
+    }) { IsBackground = true, Name = "REPlayer Agent Center UI Probe" };
+    thread.SetApartmentState(ApartmentState.STA);
+    thread.Start();
+    return completion.Task;
+}
+
+static async Task<(AiAgentTaskStatus Status, int ProviderTurns)> RunAiAgentTaskProbe(
+    string root,
+    AndroidAgentCoordinator coordinator)
+{
+    const string probeSecret = "probe-secret-never-persist";
+    var agentRoot = Path.Combine(root, "ai-agent");
+    var credentials = new ProbeCredentialStore();
+    var profileStore = new AiAgentProfileStore(Path.Combine(agentRoot, "profiles.json"), credentials);
+    var profile = new AiAgentProfile
+    {
+        Id = "hy3-probe",
+        Name = "Tencent HY3 probe",
+        Provider = AiAgentProviderKind.OpenRouter,
+        Model = "tencent/hy3:free",
+        BaseUrl = "https://openrouter.ai/api/v1",
+        MaximumTurns = 4,
+    };
+    profileStore.Save(profile, probeSecret);
+    Require(credentials.Read(profile.Id) == probeSecret, "agent credential was not stored separately");
+    var profileJson = await File.ReadAllTextAsync(profileStore.Path);
+    Require(!profileJson.Contains("probe-secret", StringComparison.Ordinal), "agent API key leaked into profile JSON");
+    Require(profileStore.Load().Single().Model == "tencent/hy3:free", "agent profile did not round-trip");
+    Require(AdbAgentCommandPolicy.IsObserveOnly(new[] { "shell", "getprop", "ro.product.model" }, out _),
+        "observe policy rejected a read-only property query");
+    Require(!AdbAgentCommandPolicy.IsObserveOnly(new[] { "shell", "rm", "/data/local/tmp/file" }, out _),
+        "observe policy allowed a mutating shell command");
+    Require(!AdbAgentCommandPolicy.IsObserveOnly(new[] { "shell", "getprop; rm /data/local/tmp/file" }, out _),
+        "observe policy allowed shell operator injection");
+    Require(!AdbAgentCommandPolicy.IsObserveOnly(new[] { "push", "file", "/data/local/tmp/file" }, out _),
+        "observe policy allowed a mutating top-level ADB command");
+    Require(!AdbAgentCommandPolicy.IsObserveOnly(new[] { "shell", "screencap", "-p", "/sdcard/capture.png" }, out _),
+        "observe policy allowed screencap to write an Android file");
+    Require(!AdbAgentCommandPolicy.IsObserveOnly(new[] { "shell", "dumpsys", "battery", "set", "level", "1" }, out _),
+        "observe policy allowed a mutating dumpsys service verb");
+
+    var provider = new ProbeAiProviderClient();
+    var taskStore = new AiAgentTaskStore(Path.Combine(agentRoot, "tasks"));
+    var runner = new AiAgentTaskRunner(coordinator, credentials, new ProbeAiProviderFactory(provider), taskStore);
+    var result = await runner.RunAsync(new AiAgentTaskRequest
+    {
+        TaskId = "hy3-task",
+        AgentId = profile.Id,
+        DeviceSerial = "device-ai",
+        Prompt = $"Inspect the Android product model and report it. Credential marker: {probeSecret}",
+        Access = AndroidAgentAccess.Observe,
+        Timeout = TimeSpan.FromSeconds(3),
+        MaximumTurns = 4,
+    }, profile);
+
+    Require(result.Status == AiAgentTaskStatus.Completed, "AI agent task did not reach Completed");
+    Require(result.Report == "Observed REPlayer Virtual Device. Credential echo: [REDACTED]", "AI agent final report was not redacted correctly");
+    Require(provider.Turns == 2, "AI agent did not continue after the ADB tool result");
+    Require(result.ToolRuns.Count == 1 && result.ToolRuns[0].Status == AndroidAgentRunStatus.Succeeded,
+        "AI agent ADB tool run was not coordinated");
+    Require(File.Exists(result.EvidencePath), "AI agent evidence file is missing");
+    var evidence = await File.ReadAllTextAsync(result.EvidencePath);
+    Require(!evidence.Contains("probe-secret", StringComparison.Ordinal), "AI agent evidence leaked its API key");
+    Require(!evidence.Contains("private-reasoning-marker", StringComparison.Ordinal), "provider reasoning leaked into evidence");
+    var persistedTask = taskStore.Load().Single();
+    Require(persistedTask.Status == AiAgentTaskStatus.Completed, "AI agent terminal state was not persisted");
+    Require(!persistedTask.Prompt.Contains(probeSecret, StringComparison.Ordinal), "AI agent task snapshot leaked its API key");
+    return (result.Status, provider.Turns);
 }
 
 static async Task RunLiveAdbProbe(string adbPath, string serial, string evidenceRoot)
@@ -215,7 +418,8 @@ internal sealed class ProbeTransport : IAndroidAgentTransport
             linked.CancelAfter(timeout);
             try
             {
-                await Task.Delay(int.Parse(arguments[1]), linked.Token);
+                var delayMilliseconds = arguments.Count > 1 && int.TryParse(arguments[1], out var parsedDelay) ? parsedDelay : 10;
+                await Task.Delay(delayMilliseconds, linked.Token);
             }
             catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
             {
@@ -246,5 +450,74 @@ internal sealed class ProbeTransport : IAndroidAgentTransport
             var current = Volatile.Read(ref target);
             if (value <= current || Interlocked.CompareExchange(ref target, value, current) == current) return;
         }
+    }
+}
+
+internal sealed class ProbeCredentialStore : IAgentCredentialStore
+{
+    private readonly Dictionary<string, string> _values = new(StringComparer.OrdinalIgnoreCase);
+    public string? Read(string agentId) => _values.GetValueOrDefault(agentId);
+    public void Write(string agentId, string secret) => _values[agentId] = secret;
+    public void Delete(string agentId) => _values.Remove(agentId);
+}
+
+internal sealed class ProbeAiProviderFactory(IAiAgentProviderClient client) : IAiAgentProviderClientFactory
+{
+    public IAiAgentProviderClient Create(AiAgentProviderKind provider) => client;
+}
+
+internal sealed class ProbeAiProviderClient : IAiAgentProviderClient
+{
+    public int Turns { get; private set; }
+
+    public Task<AiAgentProviderTurn> CompleteAsync(
+        AiAgentProfile profile,
+        string apiKey,
+        IReadOnlyList<AiAgentConversationMessage> messages,
+        CancellationToken cancellationToken)
+    {
+        Turns++;
+        if (Turns == 1)
+        {
+            return Task.FromResult(new AiAgentProviderTurn
+            {
+                Assistant = new AiAgentConversationMessage
+                {
+                    Role = "assistant",
+                    Content = string.Empty,
+                    ReasoningDetails = ReasoningMarker(),
+                    ToolCalls = new[]
+                    {
+                        new AiAgentToolCall
+                        {
+                            Id = "tool-1",
+                            Name = "execute_adb",
+                            RawArguments = "{\"arguments\":[\"shell\",\"getprop\",\"ro.product.model\"],\"timeout_seconds\":2}",
+                            Arguments = new[] { "shell", "getprop", "ro.product.model" },
+                            Access = AndroidAgentAccess.Observe,
+                            Timeout = TimeSpan.FromSeconds(2),
+                        },
+                    },
+                },
+            });
+        }
+
+        if (!messages.Any(message => message.Role == "tool" && message.Content.Contains("shell", StringComparison.Ordinal)))
+            throw new InvalidOperationException("AI provider did not receive the ADB tool result");
+        return Task.FromResult(new AiAgentProviderTurn
+        {
+            Assistant = new AiAgentConversationMessage
+            {
+                Role = "assistant",
+                Content = "Observed REPlayer Virtual Device. Credential echo: " + apiKey,
+                ReasoningDetails = ReasoningMarker(),
+            },
+        });
+    }
+
+    private static JsonElement ReasoningMarker()
+    {
+        using var document = JsonDocument.Parse("[\"private-reasoning-marker\"]");
+        return document.RootElement.Clone();
     }
 }

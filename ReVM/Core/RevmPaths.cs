@@ -13,6 +13,16 @@ public static class RevmPaths
 
     public static string RuntimeDir => Path.Combine(BaseDir, "runtime");
     public static string LogsDir => Path.Combine(BaseDir, "logs");
+    public static string UserDataDir { get; } = ResolveUserDataDir();
+    public static string AgentCenterDir => Path.Combine(UserDataDir, "agent-center");
+
+    private static string ResolveUserDataDir()
+    {
+        var local = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+        return string.IsNullOrWhiteSpace(local)
+            ? Path.Combine(BaseDir, "runtime", "user-data")
+            : Path.Combine(local, "REPlayer");
+    }
 
     private static string ResolveBaseDir()
     {

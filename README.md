@@ -24,8 +24,8 @@ relocatable AVD descriptors, adds a Start Menu shortcut, and launches REPlayer.
 It does not require administrator privileges, a separately installed .NET
 runtime, Visual Studio, Python, WSL, QEMU, Android-x86, Frida, or mitmproxy.
 
-After setup, launch from the Start Menu or run `run-replayer.bat`. If setup
-fails, it returns a nonzero exit code and writes `%TEMP%\REPlayer-setup.log`;
+After setup, launch REPlayer from the Start Menu. If setup fails, it returns
+a nonzero exit code and writes `%TEMP%\REPlayer-setup.log`;
 it never reports success after a missing dependency or incomplete payload.
 
 ## Source-build requirements
