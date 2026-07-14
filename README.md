@@ -164,7 +164,7 @@ scripts/
 
 Every push and pull request builds the complete solution, runs the deterministic concurrent-agent probe and static release validators, and publishes a self-contained `win-x64` application archive with a SHA-256 sidecar.
 
-Pushing a version tag creates a **draft** GitHub Release:
+Pushing a version tag creates a **draft** GitHub Release. Hyphenated preview tags are also marked as prereleases:
 
 ```powershell
 git tag v0.1.0-preview.1
