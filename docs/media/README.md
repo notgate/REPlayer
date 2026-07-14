@@ -15,7 +15,7 @@ Store a static cover image here and link it to a GitHub user attachment, release
 
 ```html
 <a href="VIDEO_URL">
-  <img src="docs/media/showcase-cover.png" alt="Watch the REPlayer showcase" width="100%">
+  <img src="media/showcase-cover.png" alt="Watch the REPlayer showcase" width="100%">
 </a>
 ```
 

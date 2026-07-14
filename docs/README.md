@@ -9,7 +9,7 @@
     <img alt="Agentic Automation" src="https://img.shields.io/badge/AGENTS-AUTOMATION-3C3C3C?style=for-the-badge&labelColor=1E1E1E&color=3C3C3C">
     <img alt="Windows .NET 9" src="https://img.shields.io/badge/WINDOWS-.NET_9-3C3C3C?style=for-the-badge&labelColor=1E1E1E&color=3C3C3C">
     <img alt="Open Preview" src="https://img.shields.io/badge/STAGE-OPEN_PREVIEW-3C3C3C?style=for-the-badge&labelColor=1E1E1E&color=3C3C3C">
-    <a href="LICENSE"><img alt="MIT License" src="https://img.shields.io/badge/LICENSE-MIT-3C3C3C?style=for-the-badge&labelColor=1E1E1E&color=3C3C3C"></a>
+    <a href="../LICENSE"><img alt="MIT License" src="https://img.shields.io/badge/LICENSE-MIT-3C3C3C?style=for-the-badge&labelColor=1E1E1E&color=3C3C3C"></a>
   </p>
 </div>
 
@@ -23,10 +23,10 @@ Its Android 14 persona is **fingerprint-hardened**: REPlayer applies numerous fr
 ## Preview
 
 <div align="center">
-  <img src="docs/media/workbench.png" alt="REPlayer Android emulator main window" width="390">
+  <img src="media/workbench.png" alt="REPlayer Android emulator main window" width="390">
   <p><sub>Native REPlayer chrome with the embedded Android 14 guest.</sub></p>
 
-  <img src="docs/media/agent-center.png" alt="REPlayer Agent Center running Android automation tasks" width="100%">
+  <img src="media/agent-center.png" alt="REPlayer Agent Center running Android automation tasks" width="100%">
   <p><sub>Provider-backed agents, queued tasks, controlled device access, and evidence.</sub></p>
 </div>
 
@@ -69,7 +69,7 @@ The runtime baseline is intentionally excluded from Git. Complete distributions 
 
 Agent Center queues natural-language Android tasks across OpenRouter, OpenAI, Anthropic, and Z.AI profiles. Read-only work can run concurrently; mutating operations are classified by REPlayer and serialized per device. Every task receives bounded turns, cancellation, timeouts, and JSONL evidence.
 
-External automation can use the same coordinator through the validated inbox/outbox protocol described in [docs/agent-harness.md](docs/agent-harness.md).
+External automation can use the same coordinator through the validated inbox/outbox protocol described in [agent-harness.md](agent-harness.md).
 
 ## Builds and releases
 
@@ -77,17 +77,17 @@ GitHub Actions builds, validates, and packages a self-contained `win-x64` applic
 
 ## Documentation
 
-- [Runtime architecture](docs/runtime-architecture.md)
-- [Agent automation](docs/agent-harness.md)
-- [Production validation](docs/production-validation.md)
-- [README media guide](docs/media/README.md)
-- [Contributing](docs/CONTRIBUTING.md)
-- [Security policy](docs/SECURITY.md)
-- [Third-party notices](docs/THIRD_PARTY_NOTICES.md)
+- [Runtime architecture](runtime-architecture.md)
+- [Agent automation](agent-harness.md)
+- [Production validation](production-validation.md)
+- [README media guide](media/README.md)
+- [Contributing](CONTRIBUTING.md)
+- [Security policy](SECURITY.md)
+- [Third-party notices](THIRD_PARTY_NOTICES.md)
 
 ## License
 
-REPlayer source is available under the [MIT License](LICENSE). Third-party runtimes, dependencies, services, and trademarks retain their own terms; see [third-party notices](docs/THIRD_PARTY_NOTICES.md).
+REPlayer source is available under the [MIT License](../LICENSE). Third-party runtimes, dependencies, services, and trademarks retain their own terms; see [third-party notices](THIRD_PARTY_NOTICES.md).
 
 ## Scope
 
