@@ -340,7 +340,10 @@ static Task RunAgentCenterUiProbe(string surface)
         AndroidAgentCoordinator? coordinator = null;
         try
         {
-            var root = Path.Combine(Path.GetTempPath(), "replayer-agent-ui-probe");
+            var normalizedSurface = surface.Trim().ToLowerInvariant();
+            var root = normalizedSurface == "center-showcase"
+                ? @"D:\REPlayer\showcase"
+                : Path.Combine(Path.GetTempPath(), "replayer-agent-ui-probe");
             if (Directory.Exists(root)) Directory.Delete(root, recursive: true);
             Directory.CreateDirectory(root);
             var credentials = new ProbeCredentialStore();
@@ -396,7 +399,6 @@ static Task RunAgentCenterUiProbe(string surface)
             var provider = new ProbeAiProviderClient();
             var providerFactory = new ProbeAiProviderFactory(provider);
             var runner = new AiAgentTaskRunner(coordinator, credentials, providerFactory, tasks);
-            var normalizedSurface = surface.Trim().ToLowerInvariant();
             Window window = normalizedSurface switch
             {
                 "setup" => new AgentSetupDialog(profiles, providerFactory, profile.Id),
@@ -411,6 +413,21 @@ static Task RunAgentCenterUiProbe(string surface)
                     var button = window.FindName("OpenInboxButton") as System.Windows.Controls.Button
                         ?? throw new InvalidOperationException("Open inbox button was not found for hover validation.");
                     ApplyHoverPreviewForVisualProbe(button);
+                };
+            }
+            if (normalizedSurface == "center-showcase")
+            {
+                window.Loaded += (_, _) =>
+                {
+                    var runList = window.FindName("RunList") as System.Windows.Controls.ListView
+                        ?? throw new InvalidOperationException("Agent Center run list was not found for showcase capture.");
+                    var completed = runList.Items.Cast<object>()
+                        .First(item => string.Equals(
+                            item.GetType().GetProperty("Status")?.GetValue(item)?.ToString(),
+                            "Completed",
+                            StringComparison.Ordinal));
+                    runList.SelectedItem = completed;
+                    runList.ScrollIntoView(completed);
                 };
             }
             window.ShowInTaskbar = true;
