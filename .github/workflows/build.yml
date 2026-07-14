@@ -51,6 +51,7 @@ jobs:
         shell: pwsh
         run: |
           $version = if ($env:GITHUB_REF_TYPE -eq 'tag') { $env:GITHUB_REF_NAME } else { 'ci-' + $env:GITHUB_SHA.Substring(0, 12) }
+          $packageVersion = if ($env:GITHUB_REF_TYPE -eq 'tag') { $env:GITHUB_REF_NAME -replace '^v', '' } else { '0.1.0-ci' }
           $publishDirectory = Join-Path $PWD 'dist\publish'
           $assetDirectory = Join-Path $PWD 'dist\assets'
           New-Item -ItemType Directory -Path $publishDirectory, $assetDirectory -Force | Out-Null
@@ -60,11 +61,23 @@ jobs:
             -r win-x64 `
             --self-contained true `
             --no-restore `
+            -p:Version=$packageVersion `
             -p:PublishSingleFile=false `
             -p:DebugType=None `
             -p:DebugSymbols=false `
             -o $publishDirectory
           if ($LASTEXITCODE -ne 0) { throw "dotnet publish failed with exit code $LASTEXITCODE" }
+
+          $requiredNotices = @(
+            (Join-Path $publishDirectory 'LICENSE.txt'),
+            (Join-Path $publishDirectory 'THIRD_PARTY_NOTICES.md'),
+            (Join-Path $publishDirectory 'THIRD_PARTY\ANDROID-LOGO-NOTICE.md')
+          )
+          foreach ($notice in $requiredNotices) {
+            if (-not (Test-Path -LiteralPath $notice -PathType Leaf)) {
+              throw "Published application is missing required notice: $notice"
+            }
+          }
 
           [ordered]@{
             schema = 1

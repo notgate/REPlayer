@@ -6,7 +6,7 @@
     <UseWPF>true</UseWPF>
     <Nullable>enable</Nullable>
     <AssemblyName>REPlayer</AssemblyName>
-    <Version>1.0.0</Version>
+    <Version>0.1.0-preview.2</Version>
   </PropertyGroup>
 
   <ItemGroup>
@@ -35,6 +35,18 @@
     <Content Include="..\android-tools\replayer-customizer\baseline-disabled-packages.txt"
              Link="Assets\Android\baseline-disabled-packages.txt"
              CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\LICENSE"
+             Link="LICENSE.txt"
+             CopyToOutputDirectory="PreserveNewest"
+             CopyToPublishDirectory="PreserveNewest" />
+    <Content Include="..\THIRD_PARTY_NOTICES.md"
+             Link="THIRD_PARTY_NOTICES.md"
+             CopyToOutputDirectory="PreserveNewest"
+             CopyToPublishDirectory="PreserveNewest" />
+    <Content Include="Assets\Setup\ANDROID-LOGO-NOTICE.md"
+             Link="THIRD_PARTY\ANDROID-LOGO-NOTICE.md"
+             CopyToOutputDirectory="PreserveNewest"
+             CopyToPublishDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

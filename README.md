@@ -8,7 +8,8 @@
     <img alt="Android Emulator" src="https://img.shields.io/badge/ANDROID-EMULATOR-3C3C3C?style=for-the-badge&labelColor=1E1E1E&color=3C3C3C">
     <img alt="Agentic Automation" src="https://img.shields.io/badge/AGENTS-AUTOMATION-3C3C3C?style=for-the-badge&labelColor=1E1E1E&color=3C3C3C">
     <img alt="Windows .NET 9" src="https://img.shields.io/badge/WINDOWS-.NET_9-3C3C3C?style=for-the-badge&labelColor=1E1E1E&color=3C3C3C">
-    <img alt="Private Preview" src="https://img.shields.io/badge/STAGE-PRIVATE_PREVIEW-3C3C3C?style=for-the-badge&labelColor=1E1E1E&color=3C3C3C">
+    <img alt="Open Preview" src="https://img.shields.io/badge/STAGE-OPEN_PREVIEW-3C3C3C?style=for-the-badge&labelColor=1E1E1E&color=3C3C3C">
+    <a href="LICENSE"><img alt="MIT License" src="https://img.shields.io/badge/LICENSE-MIT-3C3C3C?style=for-the-badge&labelColor=1E1E1E&color=3C3C3C"></a>
   </p>
 </div>
 
@@ -16,8 +17,7 @@
 
 ## What it is
 
-REPlayer is a native Windows Android emulator and automation platform. It contrasts to several closed-source emulators such as Bluestacks, LDPlayer and Nox for similar emulation performance.
-This project attests to a stealth environment for analysis as well as mimicing the android environment with several tweaks. 
+REPlayer is a native Windows Android emulator and automation platform. It is an open-source alternative to closed-source emulators such as BlueStacks, LDPlayer, and Nox, with transparent Android emulation and agentic automation as its focus.
 Its Android 14 persona is **fingerprint-hardened**: REPlayer applies numerous framework, property, graphics, Settings, and identity patches so the guest does not present the usual stock-emulator defaults. Reverse engineering is one use case; repeatable Android automation, app testing, and agent-controlled device workflows are first-class uses as well.
 
 ## Preview
@@ -63,7 +63,7 @@ Output: `ReVM/bin/Release/net9.0-windows/REPlayer.exe`
 
 The runtime is pinned and hash-verified. REPlayer's stealth-oriented persona removes or replaces many high-signal stock-emulator identifiers across Android properties, framework resources, graphics strings, Settings, and product branding. The release and resizable analysis lanes keep their root/debug policies explicit.
 
-The private runtime baseline is intentionally excluded from Git. Complete distributions are assembled with `scripts/setup/New-REPlayerDistribution.ps1` on the trusted release workstation.
+The runtime baseline is intentionally excluded from Git. Complete distributions are assembled with `scripts/setup/New-REPlayerDistribution.ps1` on the trusted release workstation.
 
 ## Automation
 
@@ -81,6 +81,10 @@ GitHub Actions builds, validates, and packages a self-contained `win-x64` applic
 - [Agent automation](docs/agent-harness.md)
 - [Production validation](docs/production-validation.md)
 - [README media guide](docs/media/README.md)
+
+## License
+
+REPlayer source is available under the [MIT License](LICENSE). Third-party runtimes, dependencies, services, and trademarks retain their own terms; see [third-party notices](THIRD_PARTY_NOTICES.md).
 
 ## Scope
 
